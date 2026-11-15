@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="card empty-state" role="status" aria-live="polite"><div><span className="empty-mark spin" aria-hidden="true"/><p>Loading page…</p></div></div>;}

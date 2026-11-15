@@ -1,0 +1,154 @@
+model,Glucose,probability
+Logistic Regression,50,0.019681256126798188
+Gaussian Naive Bayes,50,0.020441215255176785
+Random Forest,50,0.07333333333333333
+Logistic Regression,55,0.023869826437753334
+Gaussian Naive Bayes,55,0.020172161572198595
+Random Forest,55,0.07333333333333333
+Logistic Regression,60,0.028923509019973516
+Gaussian Naive Bayes,60,0.020241703043756738
+Random Forest,60,0.07333333333333333
+Logistic Regression,65,0.03500877553829352
+Gaussian Naive Bayes,65,0.020653277888682212
+Random Forest,65,0.07333333333333333
+Logistic Regression,70,0.042318537948630504
+Gaussian Naive Bayes,70,0.021427375062073813
+Random Forest,70,0.07333333333333333
+Logistic Regression,75,0.051073784071673095
+Gaussian Naive Bayes,75,0.02260316277966442
+Random Forest,75,0.07333333333333333
+Logistic Regression,80,0.06152402860126173
+Gaussian Naive Bayes,80,0.02424163567200294
+Random Forest,80,0.08
+Logistic Regression,85,0.07394588178852414
+Gaussian Naive Bayes,85,0.026430591917959365
+Random Forest,85,0.08333333333333333
+Logistic Regression,90,0.0886388574495262
+Gaussian Naive Bayes,90,0.02929192580821959
+Random Forest,90,0.08333333333333333
+Logistic Regression,95,0.10591739784717345
+Gaussian Naive Bayes,95,0.03299192649043875
+Random Forest,95,0.14666666666666667
+Logistic Regression,100,0.126098053342362
+Gaussian Naive Bayes,100,0.03775550496929615
+Random Forest,100,0.21
+Logistic Regression,105,0.14948091733113628
+Gaussian Naive Bayes,105,0.04388549550343785
+Random Forest,105,0.20666666666666667
+Logistic Regression,110,0.17632490006963028
+Gaussian Naive Bayes,110,0.05178829836421249
+Random Forest,110,0.21666666666666667
+Logistic Regression,115,0.20681733595046142
+Gaussian Naive Bayes,115,0.062006922195692774
+Random Forest,115,0.34
+Logistic Regression,120,0.24103979434069084
+Gaussian Naive Bayes,120,0.0752614681698302
+Random Forest,120,0.30333333333333334
+Logistic Regression,125,0.2789336864476418
+Gaussian Naive Bayes,125,0.09249435671288364
+Random Forest,125,0.36
+Logistic Regression,130,0.320270979888378
+Gaussian Naive Bayes,130,0.11491155986090837
+Random Forest,130,0.39
+Logistic Regression,135,0.3646364553731304
+Gaussian Naive Bayes,135,0.14399956092904492
+Random Forest,135,0.5033333333333333
+Logistic Regression,140,0.41142775658840686
+Gaussian Naive Bayes,140,0.1814789102862254
+Random Forest,140,0.5233333333333333
+Logistic Regression,145,0.4598774625972212
+Gaussian Naive Bayes,145,0.22913145058347653
+Random Forest,145,0.5433333333333333
+Logistic Regression,150,0.5090975710880895
+Gaussian Naive Bayes,150,0.2884246338323558
+Random Forest,150,0.5233333333333333
+Logistic Regression,155,0.5581419313778763
+Gaussian Naive Bayes,155,0.35989123320632116
+Random Forest,155,0.6466666666666666
+Logistic Regression,160,0.6060777769193457
+Gaussian Naive Bayes,160,0.44236033417525433
+Random Forest,160,0.86
+Logistic Regression,165,0.6520551385788447
+Gaussian Naive Bayes,165,0.5323787797709496
+Random Forest,165,0.8533333333333334
+Logistic Regression,170,0.6953634795398373
+Gaussian Naive Bayes,170,0.6243417852855433
+Random Forest,170,0.91
+Logistic Regression,175,0.7354681623616036
+Gaussian Naive Bayes,175,0.7116429026753663
+Random Forest,175,0.9133333333333333
+Logistic Regression,180,0.7720241107133244
+Gaussian Naive Bayes,180,0.7884773803420738
+Random Forest,180,0.91
+Logistic Regression,185,0.8048686498629457
+Gaussian Naive Bayes,185,0.8513468296422194
+Random Forest,185,0.9233333333333333
+Logistic Regression,190,0.8339987301258702
+Gaussian Naive Bayes,190,0.8994991976758335
+Random Forest,190,0.91
+Logistic Regression,195,0.8595390459125657
+Gaussian Naive Bayes,195,0.9343294148057582
+Random Forest,195,0.9166666666666666
+Logistic Regression,200,0.881707184930218
+Gaussian Naive Bayes,200,0.9583423578226857
+Random Forest,200,0.91
+Logistic Regression,205,0.9007805180625689
+Gaussian Naive Bayes,205,0.9742516555249664
+Random Forest,205,0.91
+Logistic Regression,210,0.9170677628914267
+Gaussian Naive Bayes,210,0.984448357138681
+Random Forest,210,0.91
+Logistic Regression,215,0.9308865323109369
+Gaussian Naive Bayes,215,0.9908023566666362
+Random Forest,215,0.91
+Logistic Regression,220,0.9425469720459918
+Gaussian Naive Bayes,220,0.9946657432827335
+Random Forest,220,0.91
+Logistic Regression,225,0.952340847502922
+Gaussian Naive Bayes,225,0.9969634235756839
+Random Forest,225,0.91
+Logistic Regression,230,0.9605350896281823
+Gaussian Naive Bayes,230,0.9983022400071553
+Random Forest,230,0.91
+Logistic Regression,235,0.9673687345669855
+Gaussian Naive Bayes,235,0.9990673487104383
+Random Forest,235,0.91
+Logistic Regression,240,0.9730522799598113
+Gaussian Naive Bayes,240,0.9994964795679973
+Random Forest,240,0.91
+Logistic Regression,245,0.9777686446062961
+Gaussian Naive Bayes,245,0.9997328026835695
+Random Forest,245,0.91
+Logistic Regression,250,0.981675100808434
+Gaussian Naive Bayes,250,0.9998606198413574
+Random Forest,250,0.91
+Logistic Regression,255,0.9849057179669549
+Gaussian Naive Bayes,255,0.9999285265393726
+Random Forest,255,0.91
+Logistic Regression,260,0.9875739976503595
+Gaussian Naive Bayes,260,0.9999639690605762
+Random Forest,260,0.91
+Logistic Regression,265,0.9897754909565861
+Gaussian Naive Bayes,265,0.9999821433543341
+Random Forest,265,0.91
+Logistic Regression,270,0.9915902708660314
+Gaussian Naive Bayes,270,0.9999912999593817
+Random Forest,270,0.91
+Logistic Regression,275,0.9930851901896756
+Gaussian Naive Bayes,275,0.9999958328254513
+Random Forest,275,0.91
+Logistic Regression,280,0.9943158949030445
+Gaussian Naive Bayes,280,0.9999980377148706
+Random Forest,280,0.91
+Logistic Regression,285,0.995328587930392
+Gaussian Naive Bayes,285,0.9999990915875974
+Random Forest,285,0.91
+Logistic Regression,290,0.9961615537818463
+Gaussian Naive Bayes,290,0.9999995865673486
+Random Forest,290,0.91
+Logistic Regression,295,0.9968464629418816
+Gaussian Naive Bayes,295,0.9999998150188845
+Random Forest,295,0.91
+Logistic Regression,300,0.9974094788582748
+Gaussian Naive Bayes,300,0.9999999186324968
+Random Forest,300,0.91

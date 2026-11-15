@@ -1,0 +1,4 @@
+model,splits_where_rule_picks_it
+Logistic Regression,63
+Random Forest,34
+Gaussian Naive Bayes,3

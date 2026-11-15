@@ -1,0 +1,4 @@
+model_a,model_b,metric,mean_difference_a_minus_b,sd_difference,share_of_splits_a_better,share_within_tie_tolerance
+Random Forest,Logistic Regression,roc_auc,-0.006808333333333336,0.01446874996492986,0.32,0.24
+Logistic Regression,Gaussian Naive Bayes,roc_auc,0.02219814814814816,0.01483905739567271,0.92,0.07
+Random Forest,Gaussian Naive Bayes,roc_auc,0.015389814814814823,0.01714267202997312,0.8,0.16

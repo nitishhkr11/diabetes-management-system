@@ -1,0 +1,32 @@
+# Generated private history and local secrets must never be committed.
+*.db
+.streamlit/secrets.toml
+.env
+.env.*
+!.env.example
+
+# Only the three SHA-256-manifested release artifacts are allowed through.
+models/*.joblib
+!models/logistic_regression.joblib
+!models/gaussian_naive_bayes.joblib
+!models/random_forest.joblib
+!models/svm_(rbf).joblib
+!models/gradient_boosting.joblib
+models/model_card.json
+!models/model_card.json
+
+# Temporary outputs and local environments.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.tmp
+frontend/node_modules/
+frontend/.next/
+frontend/.next-*/
+frontend/.env.local
+frontend/playwright-report/
+frontend/test-results/
+frontend/.appdata/
+frontend/.browsers/

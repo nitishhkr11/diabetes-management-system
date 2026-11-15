@@ -1,0 +1,207 @@
+{
+  "seed": 42,
+  "split": {
+    "test_size": 0.2,
+    "stratified": true
+  },
+  "outer_cv": {
+    "folds": 5,
+    "shuffle": true,
+    "seed": 42
+  },
+  "inner_cv": {
+    "folds": 4,
+    "shuffle": true,
+    "tuning_metric": "roc_auc"
+  },
+  "predeclared_selection": "highest nested OOF ROC-AUC; within 0.005 prefer simpler (LR, GNB, RF, SVM, GB)",
+  "threshold_objective": {
+    "minimum_recall": 0.65,
+    "minimum_precision": 0.5,
+    "rule": "highest nested OOF threshold meeting both constraints",
+    "feasible": true,
+    "deployed_threshold": 0.49223698810458655
+  },
+  "search_grids": {
+    "Logistic Regression": {
+      "model__C": [
+        0.1,
+        1.0,
+        10.0
+      ],
+      "model__class_weight": [
+        null,
+        "balanced"
+      ]
+    },
+    "Gaussian Naive Bayes": {
+      "model__var_smoothing": [
+        1e-11,
+        1e-09,
+        1e-07,
+        1e-05
+      ]
+    },
+    "Random Forest": {
+      "model__n_estimators": [
+        200,
+        500
+      ],
+      "model__max_depth": [
+        null,
+        5
+      ],
+      "model__min_samples_leaf": [
+        1,
+        3
+      ],
+      "model__class_weight": [
+        null,
+        "balanced"
+      ]
+    },
+    "SVM (RBF)": {
+      "model__C": [
+        0.1,
+        1.0,
+        10.0
+      ],
+      "model__gamma": [
+        "scale",
+        "auto"
+      ],
+      "model__class_weight": [
+        null,
+        "balanced"
+      ]
+    },
+    "Gradient Boosting": {
+      "model__n_estimators": [
+        75,
+        150
+      ],
+      "model__learning_rate": [
+        0.03,
+        0.1
+      ],
+      "model__max_depth": [
+        1,
+        2
+      ],
+      "model__min_samples_leaf": [
+        2,
+        5
+      ]
+    }
+  },
+  "selected_model": "Logistic Regression",
+  "full_training_best_params": {
+    "Logistic Regression": {
+      "model__C": 0.1,
+      "model__class_weight": "balanced"
+    },
+    "Gaussian Naive Bayes": {
+      "model__var_smoothing": 1e-11
+    },
+    "Random Forest": {
+      "model__class_weight": "balanced",
+      "model__max_depth": 5,
+      "model__min_samples_leaf": 3,
+      "model__n_estimators": 500
+    },
+    "SVM (RBF)": {
+      "model__C": 1.0,
+      "model__class_weight": null,
+      "model__gamma": "scale"
+    },
+    "Gradient Boosting": {
+      "model__learning_rate": 0.1,
+      "model__max_depth": 1,
+      "model__min_samples_leaf": 5,
+      "model__n_estimators": 150
+    }
+  },
+  "full_training_inner_best_auc": {
+    "Logistic Regression": 0.846667540181691,
+    "Gaussian Naive Bayes": 0.8276974143955276,
+    "Random Forest": 0.8421820405310971,
+    "SVM (RBF)": 0.8410263801537387,
+    "Gradient Boosting": 0.8391889412997903
+  },
+  "class_weight_ablation_report": "class_weight_ablation.csv",
+  "bootstrap": {
+    "method": "stratified percentile bootstrap",
+    "resamples": 2000,
+    "seed": 42,
+    "alpha": 0.05
+  },
+  "data": {
+    "raw_sha256": "698c203a14aa31941d2251175330c9199f3ccdb31597abbba2a3e35416257a72",
+    "canonical_sha256": "00921e2c6a3f645b215270e6b481a1b3e6283f1db4ee498d0de9b5a9cd0b240b",
+    "rows": 768
+  },
+  "limitations": "Small fixed split; bootstrap intervals condition on this test split and exclude training/model-selection uncertainty.",
+  "model_version": "4ea22108c507",
+  "final_test_metrics": {
+    "accuracy": 0.7142857142857143,
+    "balanced_accuracy": 0.7118518518518518,
+    "precision": 0.5757575757575758,
+    "recall": 0.7037037037037037,
+    "specificity": 0.72,
+    "f1": 0.6333333333333333,
+    "roc_auc": 0.8103703703703704,
+    "pr_auc": 0.66525050246563,
+    "false_negative_rate": 0.2962962962962963,
+    "brier": 0.18105209237351394,
+    "tn": 72,
+    "fp": 28,
+    "fn": 16,
+    "tp": 38
+  },
+  "test_confidence_intervals": {
+    "accuracy": [
+      0.6428571428571429,
+      0.7792207792207793
+    ],
+    "balanced_accuracy": [
+      0.6340555555555555,
+      0.7824074074074074
+    ],
+    "precision": [
+      0.4927482154445166,
+      0.6666666666666666
+    ],
+    "recall": [
+      0.5740740740740741,
+      0.8148148148148148
+    ],
+    "specificity": [
+      0.63,
+      0.81
+    ],
+    "f1": [
+      0.5378151260504201,
+      0.7154471544715447
+    ],
+    "roc_auc": [
+      0.7355555555555555,
+      0.8735277777777778
+    ],
+    "pr_auc": [
+      0.5630695538580014,
+      0.782057765505931
+    ],
+    "false_negative_rate": [
+      0.18518518518518517,
+      0.42592592592592593
+    ],
+    "brier": [
+      0.1467596695054091,
+      0.21980096627830062
+    ]
+  },
+  "current_run_test_used_for_selection": false,
+  "historical_test_exposure": true,
+  "independent_test_claim": false,
+  "test_exposure_note": "Prior repository reports explicitly explored thresholds on this nominal holdout as a leakage demonstration. The current release selection used nested training-only CV, but historical holdout exposure means these test metrics are descriptive, not independent confirmatory estimates."
+}

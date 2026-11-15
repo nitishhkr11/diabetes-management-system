@@ -1,0 +1,12 @@
+case,accepted,errors,warnings,Logistic Regression,Gaussian Naive Bayes,Random Forest
+Typical (training medians),True,,,0.22005850545404626,0.06689712701883782,0.31666666666666665
+Lower-risk profile,True,,,0.01663396100781189,0.003136908003727289,0.016666666666666666
+Higher-risk profile,True,,,0.9495969282084922,0.9974936645303483,0.9533333333333334
+Only the 3 required fields known,True,,Glucose not provided (training median 117.0 will be used). | BloodPressure not provided (training median 72.0 will be used). | SkinThickness not provided (training median 29.0 will be used). | Insulin not provided (training median 125.0 will be used). | BMI not provided (training median 32.4 will be used). | 5 of 5 measurements are unknown - the score is mostly based on average values and is not reliable.,0.21552524107424223,0.08190991063708215,0.45666666666666667
+Glucose 400,True,,Glucose = 400 is outside the range seen in training (56-199); the model is extrapolating - treat the score with extra caution.,0.9999497227544567,1.0,0.91
+BMI 70,True,,BMI = 70 is outside the range seen in training (18.2-67.1); the model is extrapolating - treat the score with extra caution.,0.9263651608307097,0.9575268962676987,0.5833333333333334
+Age 90,True,,Age = 90 is outside the range seen in training (21-81); the model is extrapolating - treat the score with extra caution.,0.3768731175563174,0.36589349853379916,0.48333333333333334
+Glucose 30,False,Glucose = 30 is outside the allowed range 40-500.,,,,
+Age 15,False,Age = 15 is outside the allowed range 21-100.,,,,
+BMI -5,False,BMI = -5 is outside the allowed range 10-80.,,,,
+Age missing,False,Age (years) is required.,,,,

@@ -1,0 +1,21 @@
+# Independent public dataset assessment
+
+Reviewed 2026-10-21. No second dataset is merged into the Pima benchmark and no external validation claim is made.
+
+## Candidate: CDC/NCHS NHANES 2021–August 2023
+
+NHANES publishes the DIQ_L diabetes questionnaire as a public XPT file. Its DIQ010 outcome asks whether a doctor or health professional ever told the respondent they had diabetes, with separate borderline, refused, don't-know, and missing codes. CDC's codebook shows adults and children of both sexes are included, and records 11,744 questionnaire observations for DIQ010 in this cycle. DIQ_L notes require analysis with the appropriate survey design variables and weights; laboratory merges require the relevant examination or fasting-substudy weights. [DIQ_L codebook](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DIQ_L.htm), [NHANES 2021–2023 questionnaire data listing](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Questionnaire&Cycle=2021-2023), [NHANES analytic guidelines](https://wwwn.cdc.gov/nchs/nhanes/analyticguidelines.aspx).
+
+This is a feasible *complementary diagnosed-diabetes survey task*, not an aligned test set for Pima. DIQ010 is self-reported prior diagnosis, while Pima Outcome is documented as WHO-criteria diabetes at an examination or routine care. The predictor set, population, period, sampling, and label mechanism differ. Concrete NHANES candidates include age at screening (RIDAGEYR), gender (RIAGENDR), race/ethnicity (RIDRETH3) from DEMO_L; BMI (BMXBMI) from BMX_L; measured systolic/diastolic blood pressure from BPXO_L; and fasting plasma glucose from GLU_L. The components have different eligibility rules and missing records (for example, all 11,933 cycle respondents are in DEMO_L, 8,860 examined participants are in BMX_L, and DIQ_L has 11,744 records). A merged modeling cohort's missingness must be calculated from the actual selected variables and merge, not inferred from component totals. Glucose/BMI/blood-pressure analogues do not make the overall schema or outcome equivalent. Do not score the current Pima pipeline on NHANES. [DEMO_L](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DEMO_L.htm), [BMX_L](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/BMX_L.htm), [BPXO_L](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/BPXO_L.htm).
+
+NCHS provides public-use data subject to a data user agreement: statistical reporting/analysis only, no re-identification, and no linkage to individually identifiable data. This is a use agreement, not a blanket open-source software-style license; follow the current [NCHS Data User Agreement](https://www.cdc.gov/nchs/policy/data-user-agreement.html). No NHANES records were downloaded or analyzed for this release.
+
+## Candidate: CDC BRFSS 2024
+
+CDC describes BRFSS as a state-based cross-sectional telephone survey of adult U.S. residents. The 2024 public file has 457,670 records, combines landline/cellular interviews from 49 states, DC, Guam, Puerto Rico and USVI, and is provided as ASCII and SAS Transport data. CDC cautions about missingness and comparability, and publishes codebooks, annual quality reports, comparability notes, and complex sampling weight guidance. [BRFSS overview and documentation](https://www.cdc.gov/brfss/data_documentation/index.htm), [2024 BRFSS release](https://www.cdc.gov/brfss/annual_data/annual_2024.html).
+
+BRFSS could support another self-reported diagnosed-diabetes task with survey-specific predictors and weights. It is not compatible with the Pima label or its eight predictors. The CDC release is public-use, but this review did not locate a separate permissive license statement; cite CDC and check its current use terms before redistribution. No BRFSS records were downloaded or analyzed for this release.
+
+## Decision
+
+Neither candidate is used as external validation. A future complementary project should define a new target and feature protocol, obtain the official data and codebooks, hash the downloaded files, handle survey weights/design, document missingness and any exclusions, and train/evaluate a separate model. External validation would require a genuinely aligned predictor set and outcome definition plus a frozen Pima model that can be applied without changing its features or preprocessing.
