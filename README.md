@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Diabetes Management System · GlucoGuide
 
 **A diabetes education and explainable ML research website.** GlucoGuide pairs a patient-friendly learning experience with a transparent, reproducible Pima benchmark workflow. It is not a medical device, diagnosis, screening service, treatment tool or clinically validated risk calculator.
@@ -146,3 +147,7 @@ The project is **not deployed** and has no live URL. No Supabase credentials or 
 ## Contribution and limitations
 
 The defensible contribution is an understandable integration of dataset identity checks, leakage-safe training, three-model comparison, explainability, reliability evidence and sourced education in one user-facing application. It is not a new classifier or validated healthcare product. Read [known limitations](docs/known-limitations.md) before reuse.
+=======
+# diabetes-management-system
+An interactive, AI-powered diabetes education and explainable machine learning platform that combines health awareness, data-driven risk estimation, laboratory report analysis, and model interpretability to make diabetes-related information more accessible, transparent, and understandable.
+>>>>>>> 345466871cd1a06274bb549142da5077188f4650
