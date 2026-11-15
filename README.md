@@ -1,153 +1,503 @@
-<<<<<<< HEAD
-# Diabetes Management System · GlucoGuide
+ <div align="center">
 
-**A diabetes education and explainable ML research website.** GlucoGuide pairs a patient-friendly learning experience with a transparent, reproducible Pima benchmark workflow. It is not a medical device, diagnosis, screening service, treatment tool or clinically validated risk calculator.
+# GlucoGuide
 
-> **Please do not use this model for health decisions.** It estimates patterns learned from a small historical binary-label dataset. It cannot identify Type 1, Type 2 or gestational diabetes, and its score is not a personal medical probability. For health concerns, contact a qualified healthcare professional.
+### Explainable AI · Diabetes Education · Machine Learning Research
 
-## Product pages
+**An interactive, education-first healthcare AI platform built around transparent machine learning, reproducible experiments, and responsible health information.**
 
-- **Home:** education-first overview, scope limits and the verified research workflow.
-- **Learn:** diabetes basics and types, common symptoms, clinical testing, nuanced Type 2 risk-reduction education, myths/FAQ and dated official source notes.
-- **Glucose & insulin:** original interactive SVG concept illustration; its example levels are explicitly illustrative.
-- **Estimator:** authenticated users can enter values or upload a PDF/PNG/JPEG laboratory report for local extraction and review; visitors can only run the labeled synthetic demo. Laboratory observations remain separate from model inputs, and only explicitly confirmed, semantically matching values can be copied into the Pima form. Results show the model score/class threshold, release version, candidate model scores, local SHAP and safe next-step information. Reports download as standalone HTML.
-- **Model reliability:** generated held-out metrics/figures, definitions, cross-validation selection and one-feature sensitivity curves.
-- **Model lab:** model assumptions, preprocessing, model selection, dataset scope, actual metrics and SHAP limits.
-- **About & privacy:** architecture, dataset fingerprint, methodology, limitations, privacy and account history controls.
-- **Dashboard, My history, Account settings:** protected routes for opted-in user records, export and delete controls.
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-Frontend-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Frontend-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Machine Learning](https://img.shields.io/badge/Machine%20Learning-scikit--learn-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Authentication%20%26%20Database-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Light and dark brand palettes use browser-persisted preference and follow system preference at first visit. The sidebar collapses on desktop and becomes a navigation drawer on mobile.
+</div>
 
-### Screenshots
+---
 
-Captured from the implemented Next.js home page in both persistent theme settings.
+## Overview
 
-![GlucoGuide light theme](docs/screenshots/website_home_light.png)
+GlucoGuide is a full-stack diabetes education and explainable machine learning research platform designed to make diabetes-related information and ML-based analysis more understandable and transparent.
 
-![GlucoGuide dark theme](docs/screenshots/website_home_dark.png)
+The project combines an interactive educational website with a reproducible machine learning workflow, model evaluation, SHAP-based interpretability, and laboratory report extraction.
 
-## Architecture
+Rather than presenting machine learning predictions as medical facts, GlucoGuide emphasizes model transparency, dataset limitations, evaluation evidence, and responsible interpretation.
+
+**The central objective is to demonstrate how machine learning, explainable AI, data analysis, and full-stack engineering can be integrated into a research-oriented healthcare education application.**
+
+> **Medical Disclaimer:** GlucoGuide is an educational and research project, not a medical device. Its machine learning model is not clinically validated and must not be used for diagnosis, screening, treatment, or personal healthcare decisions.
+
+---
+
+## Core Features
+
+| Module | Description |
+|---|---|
+| **Diabetes Education** | Interactive learning resources covering diabetes types, symptoms, clinical testing, prevention education, and frequently asked questions. |
+| **Glucose & Insulin** | Original interactive SVG illustration explaining glucose and insulin concepts. |
+| **ML Estimator** | Model-based estimation using the selected Pima benchmark features, with threshold-aware classification. |
+| **Laboratory Report Analysis** | Local extraction and review of laboratory values from PDF and image reports, with user confirmation before transferring matching values into the model form. |
+| **Explainable AI** | SHAP-based explanations illustrating how input features influence model outputs. |
+| **Model Reliability** | Evaluation metrics, cross-validation evidence, calibration analysis, and sensitivity experiments. |
+| **Model Laboratory** | Exploration of preprocessing, model assumptions, selection methodology, evaluation results, and limitations. |
+| **Interactive Visualizations** | Model performance charts, feature importance, confusion matrices, ROC curves, and experimental results. |
+| **Authentication & Privacy** | Supabase authentication, protected account routes, optional assessment history, and user data controls. |
+
+---
+
+## System Architecture
+
+GlucoGuide follows a modular full-stack architecture separating the user interface, machine learning inference, authentication, and persistent data storage.
 
 ```mermaid
-flowchart LR
-  CSV[Verified Pima CSV] --> TRAIN[Offline Python training]
-  TRAIN --> ART[Five pipelines + SHA-256 manifest]
-  ART --> API[FastAPI · inference and evidence]
-  WEB[Next.js App Router] -->|same-origin API proxy| API
-  WEB --> AUTH[Supabase SSR Auth]
-  WEB -->|verified user JWT| API
-  API -->|JWT + publishable key| PG[Supabase PostgreSQL]
-  PG --> RLS[RLS ownership via auth.uid()]
+flowchart TB
+    U([User])
+
+    subgraph FRONTEND["Frontend Layer"]
+        WEB["Next.js App Router"]
+        UI["Interactive UI and Visualizations"]
+        AUTH["Supabase SSR Authentication"]
+    end
+
+    subgraph BACKEND["Backend Layer"]
+        API["FastAPI REST API"]
+        VALID["Input Validation"]
+        MODEL["Saved ML Pipelines"]
+        SHAP["SHAP Explainability"]
+    end
+
+    subgraph DATA["Data and Storage"]
+        CSV[("Pima Diabetes Dataset")]
+        ART["Model Artifacts and Reports"]
+        DB[("Supabase PostgreSQL")]
+        RLS["Row-Level Security"]
+    end
+
+    U --> WEB
+    WEB --> UI
+    WEB --> AUTH
+    WEB --> API
+    API --> VALID
+    VALID --> MODEL
+    MODEL --> SHAP
+    CSV --> MODEL
+    MODEL --> ART
+    API --> DB
+    DB --> RLS
+    AUTH --> API
 ```
 
-The established Python research modules, dataset, model artifacts and generated reports remain in place. The old Streamlit UI was removed so the repository has one frontend. Full details: [architecture](docs/architecture.md), [ML methodology](docs/ml-methodology.md), [dataset provenance](docs/dataset-provenance.md), [deployment](docs/deployment.md), [security and privacy](docs/security-and-privacy.md), [known limitations](docs/known-limitations.md), [model card](docs/MODEL_CARD.md) and [data card](docs/DATA_CARD.md).
+### Technology Stack
 
-## Requirements and local setup
+| Layer | Technologies |
+|---|---|
+| Programming | Python, TypeScript |
+| Frontend | Next.js, React, CSS |
+| Backend | FastAPI, Uvicorn |
+| Machine Learning | Scikit-learn, NumPy, Pandas |
+| Explainability | SHAP |
+| Data Visualization | Matplotlib, Interactive Charts, SVG |
+| Authentication | Supabase Auth |
+| Database | PostgreSQL, Supabase |
+| Testing | Pytest, Playwright |
+| Deployment Configuration | Docker, Docker Compose, Render, Vercel |
 
-Use Python 3.11 to match the saved model pipeline runtime and Node.js 20.9 or newer. Windows PowerShell, from the repository root:
+---
+
+## Machine Learning Methodology
+
+The ML pipeline is built around the Pima Indians Diabetes benchmark dataset.
+
+### Dataset Overview
+
+| Property | Details |
+|---|---|
+| Dataset | Pima Indians Diabetes |
+| Observations | 768 |
+| Input Features | 8 |
+| Target Variable | Outcome |
+| Problem Type | Binary Classification |
+| Dataset Type | Historical benchmark dataset |
+
+The dataset contains eight numerical predictors and a binary target variable.
+
+### Input Features
+
+1. Pregnancies
+2. Glucose
+3. Blood Pressure
+4. Skin Thickness
+5. Insulin
+6. BMI
+7. Diabetes Pedigree Function
+8. Age
+
+### Data Preprocessing
+
+The preprocessing pipeline includes:
+
+- Dataset validation and fingerprint verification.
+- Treatment of known invalid zero codes as missing values in selected medical measurements.
+- Median imputation.
+- Feature scaling.
+- Stratified train-test splitting.
+- Leakage-aware preprocessing within cross-validation folds.
+
+`Pregnancies = 0` is retained as a valid value.
+
+### Models Evaluated
+
+The research workflow compares:
+
+| Algorithm | Purpose |
+|---|---|
+| Logistic Regression | Interpretable linear classification baseline |
+| Gaussian Naive Bayes | Probabilistic classification |
+| Random Forest | Ensemble-based classification |
+| Support Vector Machine (RBF) | Nonlinear classification |
+| Gradient Boosting | Sequential ensemble learning |
+
+Model selection uses nested cross-validation, with preprocessing and hyperparameter search performed inside the appropriate folds.
+
+The selected release estimator is Logistic Regression.
+
+---
+
+## Model Evaluation & Results
+
+Model evaluation considers multiple dimensions rather than relying exclusively on accuracy.
+
+### Evaluation Metrics
+
+- Accuracy
+- Balanced Accuracy
+- Precision
+- Recall
+- Specificity
+- F1-score
+- ROC-AUC
+- PR-AUC
+- Brier Score
+- False Negatives
+
+### Measured Release Comparison
+
+The following results compare the saved baseline Logistic Regression model with the newer selected Logistic Regression model.
+
+| Metric | Baseline | Selected Model |
+|---|---:|---:|
+| Threshold | 0.500 | 0.492 |
+| Accuracy | 0.708 | 0.714 |
+| Balanced Accuracy | 0.660 | 0.712 |
+| Precision | 0.600 | 0.576 |
+| Recall | 0.500 | 0.704 |
+| Specificity | 0.820 | 0.720 |
+| F1-score | 0.545 | 0.633 |
+| ROC-AUC | 0.813 | 0.810 |
+| PR-AUC | 0.673 | 0.665 |
+| Brier Score | 0.175 | 0.181 |
+| False Negatives | 27 | 16 |
+
+**Interpretation**
+
+The selected model achieves higher recall than the baseline at its chosen operating threshold, while precision and specificity decrease slightly.
+
+This demonstrates the trade-offs involved in classification threshold selection.
+
+The comparison uses the same 154-observation nominal holdout split. Earlier exploratory experiments also used this split, so it is not an untouched independent test set. These results do not establish clinical validity or independent confirmatory improvement.
+
+### Explainable AI
+
+SHAP is used to investigate how model features contribute to individual predictions and overall model behavior.
+
+The project includes:
+
+- Global feature importance.
+- SHAP summary and beeswarm plots.
+- Individual prediction explanations.
+- Feature sensitivity experiments.
+
+SHAP values explain model behavior; they do not establish medical causation.
+
+---
+
+## Repository Structure
+
+```text
+diabetes-management-system/
+│
+├── .github/
+│   └── workflows/              # GitHub Actions CI
+│
+├── backend/                    # FastAPI backend
+│   ├── main.py
+│   ├── schema.sql
+│   └── Dockerfile
+│
+├── frontend/                   # Next.js application
+│   ├── src/
+│   │   ├── app/                # Application routes
+│   │   ├── components/         # Reusable UI components
+│   │   └── lib/                # API and Supabase utilities
+│   ├── package.json
+│   └── Dockerfile
+│
+├── data/                       # Dataset and data documentation
+│
+├── docs/                       # Technical documentation
+│   ├── architecture.md
+│   ├── ml-methodology.md
+│   ├── DATA_CARD.md
+│   ├── MODEL_CARD.md
+│   └── known-limitations.md
+│
+├── models/                     # Trained ML artifacts
+│
+├── reports/                    # Evaluation and research results
+│   ├── baseline_v1/
+│   ├── experiments/
+│   └── figures/
+│
+├── scripts/                    # Training and research scripts
+│
+├── src/                        # ML pipeline modules
+│
+├── tests/                      # Automated Python tests
+│
+├── docker-compose.yml
+├── requirements.txt
+├── requirements-dev.txt
+├── render.yaml
+└── README.md
+```
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+
+- Python 3.11
+- Node.js 20.9 or newer
+- npm
+- Git
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/nitishhkr11/diabetes-management-system.git
+
+cd diabetes-management-system
+```
+
+### 2. Configure the Python Environment
 
 ```powershell
 py -3.11 -m venv .venv
+
 .\.venv\Scripts\Activate.ps1
+
 python -m pip install -r requirements-dev.txt
+```
+
+### 3. Validate the Dataset
+
+```bash
 python -m src.data_validation data/diabetes.csv
 ```
 
-Copy the example environment file for the backend, then edit values if Supabase is configured:
+### 4. Configure the Backend
+
+From the project root:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+Configure the required environment variables if using Supabase.
+
+Start the FastAPI backend:
+
+```bash
 python -m uvicorn backend.main:app --reload --env-file .env --port 8000
 ```
 
-Scanned reports and images require the local Tesseract OCR executable. The Docker API image installs it. On Windows, install Tesseract separately and ensure `tesseract.exe` is on `PATH`; text-based PDFs do not need OCR. Uploaded reports are limited to 10 MB and 5 PDF pages, use a temporary upload buffer that is cleaned up after processing, and are not persistently retained. Upload requires sign-in.
+Backend documentation:
 
-In a second PowerShell window, configure the Next.js runtime and start the website:
+`http://localhost:8000/docs`
+
+### 5. Configure the Frontend
+
+Open another terminal:
 
 ```powershell
 Copy-Item .env.example frontend/.env.local
+
 Set-Location frontend
+
 npm ci
+
 npm run dev
 ```
 
-Open `http://localhost:3000`. The FastAPI OpenAPI page is `http://localhost:8000/docs`; liveness/readiness are `/health/live` and `/health/ready`. Public learning pages and the synthetic demonstration work without Supabase credentials. Account registration, email verification, reset, dashboard and private history require a configured project.
+Open the application:
 
-To rebuild model artifacts and reports after changing the training code/data:
+`http://localhost:3000`
 
-```powershell
-python scripts/train.py
+Public educational pages and the synthetic demonstration can run without Supabase credentials. Authentication and protected account features require a configured Supabase project.
+
+### 6. Laboratory Report OCR
+
+Scanned reports and images require the Tesseract OCR executable.
+
+- Install Tesseract separately on Windows.
+- Ensure `tesseract.exe` is available in the system PATH.
+- Text-based PDFs do not require OCR.
+
+Uploaded laboratory reports require authentication and are processed using a temporary upload buffer.
+
+---
+
+## Testing & Code Quality
+
+The project includes automated Python tests and frontend testing workflows.
+
+### Python Tests
+
+```bash
+python -m pytest -q -o addopts=''
 ```
 
-### Tests, lint and build
+### Python Compilation Check
 
-From the repository root:
-
-```powershell
-python -m pytest -q -o addopts=''
+```bash
 python -m compileall -q src scripts backend tests
-Set-Location frontend
+```
+
+### Frontend Checks
+
+From the `frontend/` directory:
+
+```bash
 npm run lint
+
 npm run typecheck
+
 npm run build
+```
+
+### End-to-End Testing
+
+```bash
 npx playwright install chromium
+
 npm run test:e2e
 ```
 
-`frontend/.env.local` should be created from `.env.example` before starting Next.js. Do not commit `.env`, `.env.local` or any real credentials.
+A GitHub Actions workflow is configured for automated checks. A successful hosted workflow run should be verified separately.
 
-## Dataset and method
+---
 
-The checked-in CSV is the common 768-row Pima Indians Diabetes benchmark redistribution, with eight predictors and binary `Outcome`. Its population is commonly described as adult women of Pima heritage aged 21 and older. It is not representative of all users or the wider Indian population.
+## Security & Privacy
 
-- Raw SHA-256: `698c203a14aa31941d2251175330c9199f3ccdb31597abbba2a3e35416257a72`
-- Canonical values SHA-256: `00921e2c6a3f645b215270e6b481a1b3e6283f1db4ee498d0de9b5a9cd0b240b`
-- Known zero codes in Glucose, BloodPressure, SkinThickness, Insulin and BMI are changed to missing inside the saved pipeline; median imputation and scaling are fitted only on training rows. `Pregnancies = 0` remains valid.
-- A stratified 80:20 split (seed 42) is used. The research workflow uses nested five-fold outer/four-fold inner CV to compare the approved Logistic Regression, Gaussian Naive Bayes and Random Forest models plus RBF SVM and Gradient Boosting. Preprocessing and hyperparameter search stay inside folds; class weighting is searched for LR/RF/SVM. Selection uses nested OOF ROC-AUC with a predeclared simplicity tie-break. This current run evaluates the selected model after choices are fixed. However, prior repository experiments explicitly explored thresholds on the same nominal holdout, so the saved test results are descriptive and not independent confirmatory evidence.
-- SHAP explains model behavior for the exact selected estimator/pipeline and input; it does not establish medical causation. The score is not a personal clinical probability.
+Privacy and responsible handling of user information are important design considerations.
 
-## Measured release results
+- Supabase handles user authentication.
+- Protected API routes verify authentication tokens.
+- PostgreSQL Row-Level Security restricts records using `auth.uid()`.
+- Assessment history is disabled unless a signed-in user explicitly opts in.
+- Laboratory reports are processed locally through the application workflow and are not persistently retained.
+- Environment variables and credentials must remain outside version control.
 
-The dashboard's original numbers were independently checked against the saved baseline reports. The same stratified seed-42 80:20 split is used for comparison. The operating threshold was chosen on nested OOF training predictions, with recall ≥0.65 and precision ≥0.50, then evaluated in the release training run on the 154-row nominal holdout. Prior exploratory analyses used that same split, so it is not untouched or independent.
+**Never upload real patient records, identifiable health information, API secrets, or service-role credentials to this repository.**
 
-| Evaluation | Threshold | Accuracy | Balanced accuracy | Precision | Recall | Specificity | F1 | ROC-AUC | PR-AUC | Brier | FN |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Saved baseline Logistic Regression | 0.500 | 0.708 | 0.660 | 0.600 | 0.500 | 0.820 | 0.545 | 0.813 | 0.673 | 0.175 | 27 |
-| New selected Logistic Regression | 0.492 | 0.714 | 0.712 | 0.576 | 0.704 | 0.720 | 0.633 | 0.810 | 0.665 | 0.181 | 16 |
+The project does not have regulatory or security compliance certification.
 
-Recall is 20.4 percentage points higher than the API's actual baseline threshold, with precision lower by 2.4 points, specificity lower by 10 points, and 11 fewer false negatives on the same comparison split. ROC-AUC and PR-AUC changed slightly downward, and Brier score worsened; this is a threshold trade-off, not a uniform improvement in ranking or calibration. The 95% stratified bootstrap recall interval is 0.574–0.815; it conditions on this small, historically exposed split and excludes model-selection/training uncertainty. No independent confirmatory improvement is established. The selected nested OOF comparison metrics and generated results are in reports/.
-
-The former report separately displayed an LR 0.40 threshold test row (recall 0.648, precision 0.614), but that threshold was not saved for API inference. The new model card and serving threshold are synchronized. No external validation, clinical calibration, prospective evaluation or subgroup fairness review was performed.
-
-The original three-model artifacts are archived under models/baseline_v1, with their generated evidence under reports/baseline_v1 and docs/MODEL_CARD_baseline_v1.md. Reproduce that historic baseline with python scripts/train_baseline.py --quick. The canonical release command is python scripts/train.py.
-
-## Environment variables
-
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (frontend publishable values); `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `CORS_ORIGINS`, `API_BASE_URL` (server-side). Obtain project values from Supabase project API settings and set host values in Vercel/Render secret/environment settings. The anon/publishable key is intentionally used with the user's own token; do not add a service-role key.
-
-## Supabase and privacy
-
-1. Create a Supabase project and enable email/password Auth.
-2. Add local and deployed frontend callback URLs (`/auth/callback`) to Auth redirect allowlists.
-3. Run [`backend/schema.sql`](backend/schema.sql) in the Supabase SQL editor.
-4. Set the public frontend URL/key and server-only API URL/key/CORS origins.
-5. Test verification, reset, logout, consent, export, delete and cross-account denial with two accounts before deployment.
-
-Assessment history is disabled unless a signed-in user explicitly opts in after a prediction. The API verifies the Auth session; PostgreSQL RLS uses `auth.uid() = user_id` for every read/write/delete. Self-service account deletion and a custom retention period are not configured. This project has no regulatory or security compliance certification; do not submit identifiable or real patient records.
+---
 
 ## Deployment
 
-- **Frontend:** deploy `frontend/` as a Next.js App Router project on Vercel. Set the Supabase public values and server-only `API_BASE_URL`.
-- **API:** deploy using [`render.yaml`](render.yaml) and [`backend/Dockerfile`](backend/Dockerfile). Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and the exact deployed frontend origin in `CORS_ORIGINS`. Health probe: `/health/ready`.
-- **Database/Auth:** use Supabase; run `backend/schema.sql` and configure Auth redirects. Never expose a service-role key.
-- Local container setup: `Copy-Item .env.example .env; docker compose up --build` after editing environment values.
+The repository contains deployment configurations for:
 
-The project is **not deployed** and has no live URL. No Supabase credentials or deployment account were available for this work. GitHub Actions workflow is configured to run data checks, Python tests, frontend lint/typecheck/build and Playwright flows; a hosted Actions run has not been observed.
+| Component | Intended Platform |
+|---|---|
+| Frontend | Vercel |
+| Backend API | Render |
+| Authentication | Supabase Auth |
+| Database | Supabase PostgreSQL |
+| Containerization | Docker |
 
-## Contribution and limitations
+Deployment configuration is provided through `render.yaml`, Dockerfiles, and `docker-compose.yml`.
 
-The defensible contribution is an understandable integration of dataset identity checks, leakage-safe training, three-model comparison, explainability, reliability evidence and sourced education in one user-facing application. It is not a new classifier or validated healthcare product. Read [known limitations](docs/known-limitations.md) before reuse.
-=======
-# diabetes-management-system
-An interactive, AI-powered diabetes education and explainable machine learning platform that combines health awareness, data-driven risk estimation, laboratory report analysis, and model interpretability to make diabetes-related information more accessible, transparent, and understandable.
->>>>>>> 345466871cd1a06274bb549142da5077188f4650
+**Current deployment status:** The project is not deployed and does not currently have a live application URL.
+
+Refer to [Deployment Documentation](docs/deployment.md) for configuration details.
+
+---
+
+## Technical Documentation
+
+For a deeper understanding of the implementation and research methodology:
+
+| Document | Description |
+|---|---|
+| [Architecture](docs/architecture.md) | Application architecture and component interactions |
+| [ML Methodology](docs/ml-methodology.md) | Data processing, model selection, and evaluation |
+| [Data Card](docs/DATA_CARD.md) | Dataset description and provenance |
+| [Model Card](docs/MODEL_CARD.md) | Model details, assumptions, and evaluation |
+| [Known Limitations](docs/known-limitations.md) | Technical and methodological limitations |
+| [Security & Privacy](docs/security-and-privacy.md) | Authentication and data protection |
+| [Deployment](docs/deployment.md) | Deployment configuration |
+
+---
+
+## Limitations & Responsible Use
+
+GlucoGuide is a research and educational implementation with several important limitations:
+
+1. The model uses a small historical dataset containing 768 observations.
+2. The dataset represents a specific population and is not representative of the general population.
+3. Model outputs are not personal medical probabilities.
+4. The model cannot distinguish Type 1, Type 2, and gestational diabetes.
+5. No external clinical validation or prospective evaluation has been performed.
+6. No clinical calibration or subgroup fairness validation has been established.
+7. SHAP explanations describe model behavior, not biological or medical causation.
+
+The project should be interpreted as a demonstration of machine learning engineering and explainable AI rather than a clinically validated healthcare solution.
+
+---
+
+## Project Contribution
+
+The primary contribution of GlucoGuide is the integration of:
+
+- Reproducible machine learning workflows.
+- Leakage-aware preprocessing and model evaluation.
+- Multiple classification algorithms.
+- Explainable AI using SHAP.
+- Model reliability and sensitivity analysis.
+- Full-stack application development.
+- Responsible data handling and transparent documentation.
+
+The project demonstrates the practical application of Python, machine learning, explainable AI, backend engineering, frontend development, and database integration within a single research-oriented application.
+
+---
+
+## License
+
+This project is distributed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+**GlucoGuide**
+
+*Making machine learning more transparent, interpretable, and responsible.*
+
+Built with Python, Machine Learning, Explainable AI, and Full-Stack Development.
+
+</div>
