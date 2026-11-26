@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CheckCircle, Info, Save, ShieldCheck, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle, Info, Save, ShieldCheck } from "lucide-react";
 import { ScreeningResult } from "@/lib/screening-api";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -53,7 +53,6 @@ function MissingInputWarning({ missing }: { missing: string[] }) {
 
 export default function ScreeningResultPage() {
   const [result, setResult] = useState<ScreeningResult | null>(null);
-  const [rawInputs, setRawInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -61,9 +60,7 @@ export default function ScreeningResultPage() {
 
   useEffect(() => {
     const r = sessionStorage.getItem("screening_result");
-    const ri = sessionStorage.getItem("screening_inputs_raw");
     if (r) setResult(JSON.parse(r));
-    if (ri) setRawInputs(JSON.parse(ri));
 
     // Check auth state
     const sb = createClient();
