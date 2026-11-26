@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Activity, BookOpen, ChartNoAxesCombined, ChevronRight, ClipboardList, FlaskConical, Home, Info, LogIn, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, Sun } from "lucide-react";
+import { Activity, BookOpen, ChartNoAxesCombined, ChevronRight, ClipboardList, Database, FlaskConical, Home, Info, LogIn, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, Sun, TrendingUp } from "lucide-react";
 import { useTheme } from "next-themes";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -10,9 +10,12 @@ const nav = [
   { label: "Home", href: "/", icon: Home, group: "Explore" },
   { label: "Learn", href: "/learn", icon: BookOpen, group: "Explore" },
   { label: "Glucose & insulin", href: "/simulation", icon: Activity, group: "Explore" },
+  { label: "Public screening", href: "/screening", icon: Activity, group: "Screening" },
   { label: "Estimator", href: "/estimate", icon: ClipboardList, group: "Research tools" },
   { label: "Model reliability", href: "/reliability", icon: ChartNoAxesCombined, group: "Research tools" },
   { label: "Model lab", href: "/model-lab", icon: FlaskConical, group: "Research tools" },
+  { label: "Research dashboard", href: "/research", icon: ChartNoAxesCombined, group: "Research tools" },
+  { label: "Datasets", href: "/datasets", icon: Database, group: "Research tools" },
   { label: "About & privacy", href: "/about", icon: Info, group: "Project" },
 ];
 
@@ -38,7 +41,7 @@ export function AppShell({ children, authenticated }: { children: React.ReactNod
       </nav>
       <div className="side-bottom">
         <div className="side-safety"><ShieldCheck size={18}/><p><b>Education only</b><br/>Not a diagnosis or medical advice.</p></div>
-        {authenticated ? <><Link className="nav-link" href="/dashboard"><Home size={17}/><span>My dashboard</span></Link><Link className="nav-link" href="/history"><ClipboardList size={17}/><span>My history</span></Link><button className="nav-link nav-button" onClick={logout}><LogOut size={17}/><span>Sign out</span></button></> : <Link className="nav-link" href="/auth/login"><LogIn size={17}/><span>Sign in</span></Link>}
+        {authenticated ? <><Link className="nav-link" href="/dashboard"><Home size={17}/><span>My dashboard</span></Link><Link className="nav-link" href="/history"><ClipboardList size={17}/><span>My history</span></Link><Link className="nav-link" href="/dashboard/progress"><TrendingUp size={17}/><span>My progress</span></Link><button className="nav-link nav-button" onClick={logout}><LogOut size={17}/><span>Sign out</span></button></> : <Link className="nav-link" href="/auth/login"><LogIn size={17}/><span>Sign in</span></Link>}
       </div>
     </aside>
     <div className="main-column">

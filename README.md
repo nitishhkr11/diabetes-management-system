@@ -36,9 +36,12 @@ Rather than presenting machine learning predictions as medical facts, GlucoGuide
 
 | Module | Description |
 |---|---|
+| **Public Screening (System A)** | No login required. Enter physical measurements — age, sex, BMI, waist, blood pressure, activity and smoking — to receive a non-laboratory screening estimate from Model 2 (NHANES). |
+| **Research Dashboard (System B)** | Side-by-side comparison of both models: algorithms, datasets, evaluation metrics, confusion matrices, ROC curves, calibration, SHAP explanations, feature importance. |
+| **Personal Progress (System C)** | Registered users can save assessments, view their history, compare measurements over time, and export CSV reports. |
 | **Diabetes Education** | Interactive learning resources covering diabetes types, symptoms, clinical testing, prevention education, and frequently asked questions. |
 | **Glucose & Insulin** | Original interactive SVG illustration explaining glucose and insulin concepts. |
-| **ML Estimator** | Model-based estimation using the selected Pima benchmark features, with threshold-aware classification. |
+| **ML Estimator (Pima)** | Model-based estimation using the selected Pima benchmark features, with threshold-aware classification. |
 | **Laboratory Report Analysis** | Local extraction and review of laboratory values from PDF and image reports, with user confirmation before transferring matching values into the model form. |
 | **Explainable AI** | SHAP-based explanations illustrating how input features influence model outputs. |
 | **Model Reliability** | Evaluation metrics, cross-validation evidence, calibration analysis, and sensitivity experiments. |
@@ -109,6 +112,12 @@ flowchart TB
 
 ## Machine Learning Methodology
 
+This project uses **two completely independent ML models**. They share no data, feature schemas, artifacts or APIs.
+
+---
+
+### Model 1 — Pima Research Model (existing, preserved)
+
 The ML pipeline is built around the Pima Indians Diabetes benchmark dataset.
 
 ### Dataset Overview
@@ -163,6 +172,78 @@ The research workflow compares:
 Model selection uses nested cross-validation, with preprocessing and hyperparameter search performed inside the appropriate folds.
 
 The selected release estimator is Logistic Regression.
+
+---
+
+### Model 2 — Public Screening Model (new, NHANES)
+
+A completely independent ML pipeline for non-laboratory diabetes screening estimates.
+
+**Dataset:** NHANES 2017–2018 (Cycle J) — public domain CDC survey data, no registration required.
+
+| Property | Details |
+|---|---|
+| Dataset | NHANES 2017–2018 (US national health survey) |
+| Eligible participants | 4,900 adults aged 21+ |
+| Positive (survey-defined diabetes) | 1,066 (21.8%) |
+| Input features | 11 non-laboratory measurements |
+| Target | DIQ010==1 (diagnosed) OR HbA1c ≥ 6.5% |
+| Selected model | Logistic Regression |
+| Test ROC-AUC | 0.796 (95% CI: 0.766–0.828) |
+| Test recall | 0.714 |
+| Test F1 | 0.533 |
+| Threshold | 0.26 (validation-selected, recall ≥ 0.60) |
+
+**Features (all non-laboratory):**
+Age, sex, BMI, waist circumference, systolic blood pressure, diastolic blood pressure, moderate activity days/week, vigorous activity days/week, sedentary minutes/day, ever smoked ≥100 cigarettes, currently smoking.
+
+**Leakage prevention:** HbA1c (`LBXGH`) and diabetes diagnosis (`DIQ010`) are used **only** to construct the target label — never as model inputs. This is verified in `tests/test_public_screening.py`.
+
+**Artifacts:** `models/public_screening/` — separate from Pima artifacts in `models/`.
+
+**Documentation:** [`docs/public_model_dataset_audit.md`](docs/public_model_dataset_audit.md)
+
+---
+
+## Application Routes
+
+| Route | Access | Description |
+|---|---|---|
+| `/` | Public | Home page |
+| `/screening` | Public (no login) | Public non-laboratory screening (Model 2) |
+| `/screening/result` | Public | Screening result display, save to history |
+| `/research` | Public | Research dashboard — both models side by side |
+| `/datasets` | Public | Dataset documentation for both models |
+| `/estimate` | Public | Pima ML estimator (Model 1) |
+| `/reliability` | Public | Pima model reliability metrics |
+| `/model-lab` | Public | Pima model lab |
+| `/learn` | Public | Diabetes education |
+| `/simulation` | Public | Glucose & insulin simulation |
+| `/about` | Public | About & privacy |
+| `/dashboard` | Authenticated | Personal dashboard |
+| `/dashboard/progress` | Authenticated | Screening history and measurement progress |
+| `/history` | Authenticated | Pima assessment history |
+
+## Backend API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/v1/public-screening/metadata` | GET | None | Model card, features, limits |
+| `/api/v1/public-screening/evaluation` | GET | None | Evaluation metrics for research dashboard |
+| `/api/v1/public-screening/figures/{name}` | GET | None | Evaluation PNG figures |
+| `/api/v1/public-screening/predictions` | POST | None | Run public screening prediction |
+| `/api/v1/public-screening/history` | GET | Bearer | Retrieve saved screening history |
+| `/api/v1/public-screening/history` | POST | Bearer | Save a screening assessment |
+| `/api/v1/public-screening/history/export` | GET | Bearer | Export history as CSV |
+| `/api/v1/public-screening/history/{id}` | DELETE | Bearer | Delete one assessment |
+| `/api/v1/public-screening/history` | DELETE | Bearer | Delete all assessments |
+
+## Database Migration
+
+After setting up Supabase, run **both** SQL files in this order in the Supabase SQL Editor:
+
+1. `backend/schema.sql` — base tables (assessments, etc.)
+2. `backend/schema_public_screening.sql` — adds `screening_assessments` table with RLS
 
 ---
 

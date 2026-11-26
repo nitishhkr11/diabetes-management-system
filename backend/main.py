@@ -30,6 +30,10 @@ from src.audit_report import build_audit_html  # noqa: E402
 from src.predict import ArtifactError, load_artifacts, predict_one  # noqa: E402
 from src.sensitivity import sensitivity_bounds, vary_feature  # noqa: E402
 from src.medical_report import MAX_BYTES as REPORT_MAX_BYTES, ReportError, extract_text, parse_observations  # noqa: E402
+from src.public_predict import (  # noqa: E402
+    PublicModelError, load_public_artifacts, predict_public,
+    get_public_metadata, get_public_evaluation,
+)
 
 REPORT_REQUEST_LIMIT = REPORT_MAX_BYTES + 256 * 1024
 
@@ -459,5 +463,193 @@ async def history_delete(assessment_id: UUID, user: User, authorization: Annotat
 @app.delete("/api/v1/history", tags=["history"])
 async def history_delete_all(user: User, authorization: Annotated[str, Header()]):
     await postgrest("DELETE", "assessments?id=not.is.null", authorization, prefer="return=minimal")
+    return {"deleted": True}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUBLIC SCREENING — Model 2 (NHANES) — no authentication required
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@lru_cache(maxsize=1)
+def public_artifacts():
+    models_dir = Path(os.getenv("PUBLIC_MODELS_DIR", ROOT / "models" / "public_screening"))
+    return load_public_artifacts(str(models_dir))
+
+
+def ready_public_artifacts():
+    try:
+        return public_artifacts()
+    except PublicModelError as exc:
+        raise HTTPException(status_code=503, detail=f"Public screening model unavailable: {exc}") from exc
+
+
+class PublicScreeningInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    age_years:          float | None = Field(default=None, ge=21,  le=80)
+    sex_male:           float | None = Field(default=None, ge=0,   le=1)
+    bmi:                float | None = Field(default=None, ge=10,  le=70)
+    waist_cm:           float | None = Field(default=None, ge=40,  le=200)
+    sys_bp:             float | None = Field(default=None, ge=60,  le=220)
+    dia_bp:             float | None = Field(default=None, ge=20,  le=130)
+    mod_days_per_week:  float | None = Field(default=None, ge=0,   le=7)
+    vig_days_per_week:  float | None = Field(default=None, ge=0,   le=7)
+    sedentary_min_day:  float | None = Field(default=None, ge=0,   le=1440)
+    smoked_100:         float | None = Field(default=None, ge=0,   le=1)
+    current_smoker:     float | None = Field(default=None, ge=0,   le=1)
+
+
+class SaveScreeningAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    consent: bool
+    inputs: PublicScreeningInput
+
+
+@app.get("/api/v1/public-screening/metadata", tags=["public-screening"])
+def public_screening_metadata(art=Depends(ready_public_artifacts)):
+    """Model card and feature schema for the public screening model (no auth)."""
+    return get_public_metadata(art)
+
+
+@app.get("/api/v1/public-screening/evaluation", tags=["public-screening"])
+def public_screening_evaluation(art=Depends(ready_public_artifacts)):
+    """Full evaluation data for the research/interviewer dashboard (no auth)."""
+    return get_public_evaluation(art)
+
+
+@app.get("/api/v1/public-screening/figures/{filename}", tags=["public-screening"])
+def public_screening_figure(filename: str):
+    """Serve evaluation figures for the public screening model."""
+    allowed = {"roc_test.png", "confusion_test.png", "calibration_test.png", "feature_importance.png"}
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Figure not found.")
+    path = ROOT / "reports" / "public_screening" / "figures" / filename
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Figure not yet generated.")
+    return Response(path.read_bytes(), media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.post("/api/v1/public-screening/predictions", tags=["public-screening"])
+def create_public_screening_prediction(
+    payload: PublicScreeningInput,
+    request: Request,
+    art=Depends(ready_public_artifacts),
+):
+    """
+    Guest-accessible public diabetes screening prediction.
+    No authentication required. Inputs are non-laboratory biometric measurements.
+    Rate-limited per client IP.
+    """
+    client_host = request.headers.get("x-dms-rate-key") or (
+        request.client.host if request.client else "unknown"
+    )
+    if not rate_window.allow(client_host):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many screening requests. Wait a minute and try again.",
+            headers={"Retry-After": "60"},
+        )
+    raw = payload.model_dump()
+    result = predict_public(art, raw)
+    if not result["ok"]:
+        raise HTTPException(status_code=422, detail={
+            "errors": result.get("errors", []),
+            "warnings": result.get("warnings", []),
+        })
+    return result
+
+
+@app.post("/api/v1/public-screening/history", tags=["public-screening-history"])
+async def screening_history_create(
+    payload: SaveScreeningAssessment,
+    user: User,
+    authorization: Annotated[str, Header()],
+    art=Depends(ready_public_artifacts),
+):
+    """Save a public screening assessment to personal history (requires auth + consent)."""
+    if payload.consent is not True:
+        raise HTTPException(status_code=400, detail="Explicit consent is required before saving an assessment.")
+    raw = payload.inputs.model_dump()
+    result = predict_public(art, raw)
+    if not result["ok"]:
+        raise HTTPException(status_code=422, detail={
+            "errors": result.get("errors", []),
+            "warnings": result.get("warnings", []),
+        })
+    record = {
+        "model_version": result["model_version"],
+        "model_name":    result["model"],
+        "model_type":    "public_screening",
+        "score":         result["probability"],
+        "label":         result["label"],
+        "band":          result["band"],
+        "threshold":     result["threshold"],
+        "inputs":        result["inputs"],
+        "missing_inputs": result["missing_inputs"],
+        "dataset":       "NHANES 2017-2018",
+    }
+    saved = await postgrest("POST", "screening_assessments", authorization, json_body=record)
+    return {"item": (saved or [None])[0]}
+
+
+@app.get("/api/v1/public-screening/history", tags=["public-screening-history"])
+async def screening_history_list(
+    user: User,
+    authorization: Annotated[str, Header()],
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    path = (
+        f"screening_assessments?select=id,created_at,model_version,model_name,"
+        f"score,label,band,threshold,inputs,missing_inputs,dataset"
+        f"&order=created_at.desc&limit={limit}&offset={offset}"
+    )
+    records, total = await postgrest("GET", path, authorization, exact_count=True)
+    return {"items": records or [], "total": total, "limit": limit, "offset": offset}
+
+
+@app.get("/api/v1/public-screening/history/export", tags=["public-screening-history"])
+async def screening_history_export(user: User, authorization: Annotated[str, Header()]):
+    rows = await postgrest(
+        "GET",
+        "screening_assessments?select=id,created_at,model_version,model_name,"
+        "score,label,band,threshold,inputs,missing_inputs,dataset"
+        "&order=created_at.desc&limit=1000",
+        authorization,
+    )
+    output = io.StringIO(newline="")
+    fields = ["id", "created_at", "model_version", "model_name", "score", "label",
+              "band", "threshold", "inputs", "missing_inputs", "dataset"]
+    writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+    writer.writeheader()
+    for record in rows or []:
+        writer.writerow({
+            **record,
+            "inputs": json.dumps(record.get("inputs", {}), separators=(",", ":")),
+            "missing_inputs": json.dumps(record.get("missing_inputs", []), separators=(",", ":")),
+        })
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=screening-history.csv"},
+    )
+
+
+@app.delete("/api/v1/public-screening/history/{assessment_id}",
+            response_model=DeleteResponse, tags=["public-screening-history"])
+async def screening_history_delete(
+    assessment_id: UUID, user: User, authorization: Annotated[str, Header()]
+):
+    rows = await postgrest(
+        "DELETE", f"screening_assessments?id=eq.{assessment_id}",
+        authorization, prefer="return=representation"
+    )
+    return {"deleted": bool(rows)}
+
+
+@app.delete("/api/v1/public-screening/history", tags=["public-screening-history"])
+async def screening_history_delete_all(user: User, authorization: Annotated[str, Header()]):
+    await postgrest("DELETE", "screening_assessments?id=not.is.null",
+                    authorization, prefer="return=minimal")
     return {"deleted": True}
 

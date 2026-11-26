@@ -1,0 +1,12 @@
+feature,importance,type
+age_years,0.6170133615416694,abs_coefficient
+sex_male,0.14086431712047912,abs_coefficient
+bmi,0.32102371387632195,abs_coefficient
+waist_cm,0.10754760747951259,abs_coefficient
+sys_bp,0.15553364695933972,abs_coefficient
+dia_bp,0.06405338366080622,abs_coefficient
+mod_days_per_week,0.239819285917787,abs_coefficient
+vig_days_per_week,0.004750882866815069,abs_coefficient
+sedentary_min_day,0.14771027837259704,abs_coefficient
+smoked_100,0.0672315285917395,abs_coefficient
+current_smoker,0.061665169065406,abs_coefficient

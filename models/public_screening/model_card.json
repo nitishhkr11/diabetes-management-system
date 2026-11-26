@@ -1,0 +1,345 @@
+{
+  "model_version": "ps_v1",
+  "model_type": "public_screening",
+  "selected_model": "Logistic Regression",
+  "trained_at": "2026-11-26T15:40:02.317551Z",
+  "python_version": "3.13.15",
+  "sklearn_version": "1.9.1",
+  "package_versions": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.5",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1"
+  },
+  "dataset": {
+    "source": "NHANES 2017-2018 (cycle J)",
+    "official_url": "https://wwwn.cdc.gov/Nchs/Nhanes/",
+    "access_conditions": "Public domain (US Government CDC data)",
+    "fingerprint": "24959158b157c2cbd830e9e42824d3b8d5c40a977e4cc4d693f30c6ca44c022b",
+    "n_eligible": 4900,
+    "n_train": 3332,
+    "n_val": 588,
+    "n_test": 980,
+    "prevalence_train": 0.21758703481392558,
+    "prevalence_test": 0.2173469387755102
+  },
+  "target_definition": {
+    "description": "Survey-defined diabetes phenotype",
+    "positive": "DIQ010==1 (ever told have diabetes, non-gestational) OR LBXGH>=6.5",
+    "negative": "DIQ010==2 (no) AND LBXGH<6.5",
+    "excluded": "Borderline (DIQ010==3), refused, gestational-only, both missing",
+    "note": "Single survey biomarker HbA1c result. Not equivalent to clinical diagnosis.",
+    "leakage_prevention": "LBXGH and DIQ010 used ONLY for target construction, never as model features"
+  },
+  "features": [
+    "age_years",
+    "sex_male",
+    "bmi",
+    "waist_cm",
+    "sys_bp",
+    "dia_bp",
+    "mod_days_per_week",
+    "vig_days_per_week",
+    "sedentary_min_day",
+    "smoked_100",
+    "current_smoker"
+  ],
+  "feature_labels": {
+    "age_years": "Age (years)",
+    "sex_male": "Sex (male=1, female=0)",
+    "bmi": "BMI (kg/m\u00b2)",
+    "waist_cm": "Waist circumference (cm)",
+    "sys_bp": "Mean systolic blood pressure (mmHg)",
+    "dia_bp": "Mean diastolic blood pressure (mmHg)",
+    "mod_days_per_week": "Days/week moderate physical activity \u226510 min",
+    "vig_days_per_week": "Days/week vigorous physical activity \u226510 min",
+    "sedentary_min_day": "Minutes/day sedentary",
+    "smoked_100": "Ever smoked \u2265100 cigarettes (yes/no)",
+    "current_smoker": "Current smoker (yes/no)"
+  },
+  "input_limits": {
+    "age_years": [
+      21,
+      80
+    ],
+    "sex_male": [
+      0,
+      1
+    ],
+    "bmi": [
+      10.0,
+      70.0
+    ],
+    "waist_cm": [
+      40.0,
+      200.0
+    ],
+    "sys_bp": [
+      60.0,
+      220.0
+    ],
+    "dia_bp": [
+      30.0,
+      130.0
+    ],
+    "mod_days_per_week": [
+      0,
+      7
+    ],
+    "vig_days_per_week": [
+      0,
+      7
+    ],
+    "sedentary_min_day": [
+      0,
+      1440
+    ],
+    "smoked_100": [
+      0,
+      1
+    ],
+    "current_smoker": [
+      0,
+      1
+    ]
+  },
+  "threshold": 0.26,
+  "threshold_selection": "Maximize F1 on validation set, subject to recall>=0.60 and precision>=0.40",
+  "profile": {
+    "age_years": {
+      "median": 54.0,
+      "mean": 52.17376950780312,
+      "std": 17.375887351711746,
+      "min": 21.0,
+      "max": 80.0,
+      "q05": 24.0,
+      "q95": 80.0,
+      "missing_pct": 0.0
+    },
+    "sex_male": {
+      "median": 0.0,
+      "mean": 0.47959183673469385,
+      "std": 0.4996583176266049,
+      "min": 0.0,
+      "max": 1.0,
+      "q05": 0.0,
+      "q95": 1.0,
+      "missing_pct": 0.0
+    },
+    "bmi": {
+      "median": 28.6,
+      "mean": 29.7476,
+      "std": 7.1590015974268795,
+      "min": 14.2,
+      "max": 68.2,
+      "q05": 20.2,
+      "q95": 43.254999999999974,
+      "missing_pct": 2.460984393757503
+    },
+    "waist_cm": {
+      "median": 99.4,
+      "mean": 100.83320475731276,
+      "std": 16.917541268039223,
+      "min": 57.9,
+      "max": 166.0,
+      "q05": 75.25,
+      "q95": 131.55,
+      "missing_pct": 6.63265306122449
+    },
+    "sys_bp": {
+      "median": 124.0,
+      "mean": 127.04258300991808,
+      "std": 19.833168209842743,
+      "min": 80.0,
+      "max": 234.0,
+      "q05": 101.33333333333331,
+      "q95": 165.0,
+      "missing_pct": 7.202881152460984
+    },
+    "dia_bp": {
+      "median": 73.0,
+      "mean": 73.03867403314918,
+      "std": 11.624969731493731,
+      "min": 30.666666666666668,
+      "max": 125.0,
+      "q05": 54.53333333333333,
+      "q95": 92.66666666666669,
+      "missing_pct": 7.653061224489796
+    },
+    "mod_days_per_week": {
+      "median": 0.0,
+      "mean": 0.9300090117152298,
+      "std": 1.9331287615709918,
+      "min": 0.0,
+      "max": 7.0,
+      "q05": 0.0,
+      "q95": 6.0,
+      "missing_pct": 0.09003601440576231
+    },
+    "vig_days_per_week": {
+      "median": 0.0,
+      "mean": 0.7508255779045332,
+      "std": 1.5989096537888587,
+      "min": 0.0,
+      "max": 7.0,
+      "q05": 0.0,
+      "q95": 5.0,
+      "missing_pct": 0.030012004801920768
+    },
+    "sedentary_min_day": {
+      "median": 300.0,
+      "mean": 327.72815240399154,
+      "std": 202.1751250486781,
+      "min": 5.397605346934028e-79,
+      "max": 1320.0,
+      "q05": 60.0,
+      "q95": 720.0,
+      "missing_pct": 0.7503001200480192
+    },
+    "smoked_100": {
+      "median": 0.0,
+      "mean": 0.4180672268907563,
+      "std": 0.49331537369404876,
+      "min": 0.0,
+      "max": 1.0,
+      "q05": 0.0,
+      "q95": 1.0,
+      "missing_pct": 0.0
+    },
+    "current_smoker": {
+      "median": 0.0,
+      "mean": 0.17617046818727491,
+      "std": 0.3810223158239291,
+      "min": 0.0,
+      "max": 1.0,
+      "q05": 0.0,
+      "q95": 1.0,
+      "missing_pct": 0.0
+    }
+  },
+  "cv_selection": "GridSearchCV with StratifiedKFold(5), scored by ROC-AUC",
+  "selection_rule": "Best validation ROC-AUC across all candidate models",
+  "test_metrics": {
+    "threshold": 0.26,
+    "accuracy": 0.7285714285714285,
+    "balanced_accuracy": 0.723169962845303,
+    "precision": 0.4257703081232493,
+    "recall": 0.7136150234741784,
+    "specificity": 0.7327249022164276,
+    "f1": 0.5333333333333333,
+    "roc_auc": 0.7961816968739861,
+    "pr_auc": 0.4723804944960466,
+    "brier": 0.139986981970821,
+    "false_negative_rate": 0.2863849765258216,
+    "tn": 562,
+    "fp": 205,
+    "fn": 61,
+    "tp": 152,
+    "n_samples": 980,
+    "n_positive": 213,
+    "n_negative": 767
+  },
+  "test_confidence_intervals": {
+    "threshold": [
+      0.26,
+      0.26
+    ],
+    "accuracy": [
+      0.6989795918367347,
+      0.7581632653061224
+    ],
+    "balanced_accuracy": [
+      0.6885190806407456,
+      0.7564562953273519
+    ],
+    "precision": [
+      0.37316792312867664,
+      0.4772942618605884
+    ],
+    "recall": [
+      0.6540488565488566,
+      0.7722830932382337
+    ],
+    "specificity": [
+      0.7011271496034929,
+      0.7670157068062827
+    ],
+    "f1": [
+      0.4807155963302753,
+      0.5810081674466513
+    ],
+    "roc_auc": [
+      0.7657411624260996,
+      0.8276777612265872
+    ],
+    "pr_auc": [
+      0.4079285953984969,
+      0.5512036887288618
+    ],
+    "brier": [
+      0.12776604209074716,
+      0.15179144082626816
+    ],
+    "false_negative_rate": [
+      0.22771690676176623,
+      0.3459511434511435
+    ]
+  },
+  "calibration_bins": [
+    {
+      "bin_low": 0.0,
+      "bin_high": 0.125,
+      "count": 308,
+      "mean_predicted": 0.07462919326434792,
+      "observed_fraction": 0.03571428571428571
+    },
+    {
+      "bin_low": 0.125,
+      "bin_high": 0.25,
+      "count": 298,
+      "mean_predicted": 0.18597667390868,
+      "observed_fraction": 0.15771812080536912
+    },
+    {
+      "bin_low": 0.25,
+      "bin_high": 0.375,
+      "count": 200,
+      "mean_predicted": 0.310829574999701,
+      "observed_fraction": 0.33
+    },
+    {
+      "bin_low": 0.375,
+      "bin_high": 0.5,
+      "count": 130,
+      "mean_predicted": 0.42434106261593035,
+      "observed_fraction": 0.4846153846153846
+    },
+    {
+      "bin_low": 0.5,
+      "bin_high": 0.625,
+      "count": 42,
+      "mean_predicted": 0.5434800041922949,
+      "observed_fraction": 0.5952380952380952
+    },
+    {
+      "bin_low": 0.625,
+      "bin_high": 0.75,
+      "count": 2,
+      "mean_predicted": 0.6699064951365348,
+      "observed_fraction": 0.5
+    }
+  ],
+  "model_file": "selected_model.joblib",
+  "model_sha256": "d64fbe7bc58646ecf2f86638e997dd2fbff2d956625ad58efeaf417026706f23",
+  "intended_use": "Public screening estimation from non-laboratory measurements. Educational and research prototype; not a medical device or clinical risk calculator.",
+  "population": "US non-institutionalized civilian adults aged 21+. Modeled on NHANES 2015-2016 and 2017-2018. NOT validated on other populations.",
+  "population_limitations": [
+    "Modeled on US adults from NHANES; may not generalize to other populations",
+    "Age top-coded at 80 in NHANES; extrapolation above 80 unreliable",
+    "Single survey cycle biomarker; not equivalent to clinical diagnosis",
+    "Survey self-report for PA and smoking may underestimate true values",
+    "Physical activity missing for many participants; imputed with training median",
+    "No external clinical validation performed"
+  ],
+  "clinical_disclaimer": "This model estimates a research-defined survey phenotype, NOT a clinical diagnosis. It must NOT be used for medical decision-making, diagnosis, treatment, or personal health management without qualified clinical assessment."
+}

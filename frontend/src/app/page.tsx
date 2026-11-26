@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, ArrowRight, BookOpen, ChartNoAxesCombined, CircleHelp, Database, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, ChartNoAxesCombined, CircleHelp, Database, LockKeyhole, Scan, ShieldCheck, Sparkles } from "lucide-react";
 import { GlucoseIllustration, MiniFlow } from "@/components/glucose-illustration";
 
 function HeroArt() {
@@ -7,6 +7,7 @@ function HeroArt() {
 }
 
 const features = [
+  { icon: Scan, title: "Public screening", body: "No login needed. Enter physical measurements to get a non-laboratory screening estimate from NHANES survey data.", href: "/screening" },
   { icon: BookOpen, title: "Understand diabetes", body: "Clear, sourced explanations of diabetes types, diagnosis and common questions.", href: "/learn" },
   { icon: Activity, title: "Explore the estimator", body: "See how three classic models respond to a research dataset input.", href: "/estimate" },
   { icon: Sparkles, title: "Explainable AI", body: "Inspect feature contributions and their limits with local SHAP.", href: "/model-lab" },
@@ -16,10 +17,11 @@ const features = [
 
 export default function HomePage() {
   return <>
-    <section className="hero-card"><div className="hero-copy"><div className="eyebrow">DIABETES EDUCATION + RESEARCH TRANSPARENCY</div><h1>Understand the science. <em>See the model.</em></h1><p>Explore diabetes education and a transparent machine-learning research prototype, built to show how data, model outputs and explanations should be interpreted carefully.</p><div className="hero-actions"><Link className="btn" href="/estimate">Explore the estimator <ArrowRight size={16}/></Link><Link className="btn btn-secondary" href="/learn">Learn about diabetes</Link></div><div className="hero-safe"><ShieldCheck size={15}/> Educational research only · Not a diagnostic tool</div></div><div className="hero-art"><HeroArt/></div></section>
+    <section className="hero-card"><div className="hero-copy"><div className="eyebrow">DIABETES EDUCATION + RESEARCH TRANSPARENCY</div><h1>Understand the science. <em>See the model.</em></h1><p>Explore diabetes education and a transparent machine-learning research prototype, built to show how data, model outputs and explanations should be interpreted carefully.</p><div className="hero-actions"><Link className="btn" href="/screening">Public screening <ArrowRight size={16}/></Link><Link className="btn btn-secondary" href="/learn">Learn about diabetes</Link></div><div className="hero-safe"><ShieldCheck size={15}/> Educational research only · Not a diagnostic tool</div></div><div className="hero-art"><HeroArt/></div></section>
     <div className="section-title"><div><h2>Built for learning, not diagnosis</h2><p>Patient-friendly context with technical evidence close at hand.</p></div><Link className="text-link" href="/about">Project overview <ArrowRight size={14}/></Link></div>
     <section className="feature-grid">{features.map(({icon:Icon,title,body,href})=><Link className="card feature-card" key={title} href={href}><span className="feature-icon"><Icon size={17}/></span><h3>{title}</h3><p>{body}</p></Link>)}</section>
     <div className="split-grid" style={{marginBottom:20}}><section className="card card-pad"><div className="section-title"><div><h2>How this research workflow works</h2><p>The same verified pipeline is used from training to inference.</p></div></div><MiniFlow/><div className="steps"><div className="step"><small>01 · INPUT</small><b>Eight variables</b><p>Small historical Pima benchmark features.</p></div><div className="step"><small>02 · PREPROCESS</small><b>Known zeros handled</b><p>Zero-to-missing, then training-only imputation and scaling.</p></div><div className="step"><small>03 · COMPARE</small><b>Five classifier families</b><p>Nested CV on training rows selects one pipeline.</p></div><div className="step"><small>04 · OUTPUT</small><b>Model score</b><p>Not a personal medical probability or diagnosis.</p></div><div className="step"><small>05 · EXPLAIN</small><b>SHAP contributions</b><p>Model behavior, not medical cause.</p></div></div></section><section className="card card-pad"><div className="section-title"><div><h2>Know the scope before you explore</h2><p>A deliberately narrow research dataset.</p></div><Database size={18} color="var(--secondary)"/></div><div className="note"><CircleHelp size={17}/><p>The benchmark contains <b>768 records from adult women of Pima heritage aged 21 and older</b>. It is not representative of all people and has not been externally validated. The binary outcome does not identify diabetes type.</p></div><ul className="scope-list"><li>Real measured model results, with project targets shown honestly.</li><li>No medical diagnosis, treatment, or individual clinical assessment.</li><li>Education pages are public; assessment history requires sign-in and opt-in consent.</li></ul><Link className="text-link" href="/reliability">See limitations and metrics <ArrowRight size={14}/></Link></section></div>
     <div className="section-title"><div><h2>A visual way to learn</h2><p>Explore a simple concept model of glucose and insulin.</p></div><Link className="text-link" href="/simulation">Open simulation <ArrowRight size={14}/></Link></div><GlucoseIllustration compact/>
   </>;
 }
+
