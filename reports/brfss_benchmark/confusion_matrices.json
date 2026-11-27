@@ -1,0 +1,20 @@
+{
+  "Logistic Regression": {
+    "tn": 31734,
+    "fp": 11933,
+    "fn": 1689,
+    "tp": 5380
+  },
+  "Random Forest": {
+    "tn": 32234,
+    "fp": 11433,
+    "fn": 1706,
+    "tp": 5363
+  },
+  "Gradient Boosting": {
+    "tn": 31212,
+    "fp": 12455,
+    "fn": 1512,
+    "tp": 5557
+  }
+}

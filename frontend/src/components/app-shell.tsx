@@ -10,7 +10,7 @@ const nav = [
   { label: "Home", href: "/", icon: Home, group: "Explore" },
   { label: "Learn", href: "/learn", icon: BookOpen, group: "Explore" },
   { label: "Glucose & insulin", href: "/simulation", icon: Activity, group: "Explore" },
-  { label: "Public screening", href: "/screening", icon: Activity, group: "Screening" },
+  { label: "India screening", href: "/screening", icon: Activity, group: "Screening" },
   { label: "Estimator", href: "/estimate", icon: ClipboardList, group: "Research tools" },
   { label: "Model reliability", href: "/reliability", icon: ChartNoAxesCombined, group: "Research tools" },
   { label: "Model lab", href: "/model-lab", icon: FlaskConical, group: "Research tools" },

@@ -37,3 +37,15 @@ frontend/.browsers/
 !.env.example
 frontend/.env.local
 frontend/.env.*.local
+
+# Restricted / private participant-level datasets (e.g. ICMR-INDIAB)
+data/private/
+!data/private/indiab/manifest.json
+!data/private/**/.gitkeep
+data/nhanes/*.XPT
+data/nhanes/*.xpt
+data/public/brfss/*.csv
+data/public/brfss/*.parquet
+models/india_indiab/*.joblib
+models/brfss_benchmark/*.joblib
+

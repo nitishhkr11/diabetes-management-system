@@ -34,6 +34,13 @@ from src.public_predict import (  # noqa: E402
     PublicModelError, load_public_artifacts, predict_public,
     get_public_metadata, get_public_evaluation,
 )
+from src.india_predict import (  # noqa: E402
+    IndiaModelUnavailableError, get_india_status, get_india_metadata,
+    get_india_evaluation, load_india_artifacts, predict_india,
+)
+from src.brfss_predict import (  # noqa: E402
+    get_brfss_metadata, get_brfss_evaluation,
+)
 
 REPORT_REQUEST_LIMIT = REPORT_MAX_BYTES + 256 * 1024
 
@@ -285,6 +292,7 @@ def ready():
 def metadata(art=Depends(ready_artifacts)):
     return {
         "project": "Diabetes Management System",
+        "model_label": "Historical Pima research benchmark",
         "intended_use": "Educational research prototype; not a medical device or clinical risk calculator.",
         "model_version": art.card["model_version"],
         "trained_at": art.card.get("trained_at"),
@@ -652,4 +660,145 @@ async def screening_history_delete_all(user: User, authorization: Annotated[str,
     await postgrest("DELETE", "screening_assessments?id=not.is.null",
                     authorization, prefer="return=minimal")
     return {"deleted": True}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INDIA SCREENING — Model 3 (ICMR-INDIAB) — independent & gated
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class IndiaScreeningInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    age_years: float = Field(ge=20, le=100)
+    sex: str = Field(min_length=1, max_length=20)
+    bmi: float | None = Field(default=None, ge=10, le=70)
+    waist_cm: float | None = Field(default=None, ge=40, le=200)
+    waist_height_ratio: float | None = Field(default=None, ge=0.25, le=1.2)
+    sys_bp: float | None = Field(default=None, ge=60, le=240)
+    dia_bp: float | None = Field(default=None, ge=30, le=140)
+    family_history_diabetes: str | None = Field(default=None, max_length=20)
+    physical_activity_score: float | None = Field(default=None, ge=0, le=10000)
+    tobacco_use: str | None = Field(default=None, max_length=30)
+    alcohol_use: str | None = Field(default=None, max_length=30)
+    education_level: str | None = Field(default=None, max_length=40)
+    ses_indicator: str | None = Field(default=None, max_length=40)
+    residence_type: str | None = Field(default=None, max_length=20)
+    state_region: str | None = Field(default=None, max_length=60)
+
+
+class SaveIndiaAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    consent: bool
+    inputs: IndiaScreeningInput
+
+
+def ready_india_artifacts():
+    try:
+        return load_india_artifacts()
+    except IndiaModelUnavailableError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "available": False,
+                "status": get_india_status(),
+                "message": str(exc),
+            },
+        ) from exc
+
+
+@app.get("/api/v1/india-screening/status", tags=["india-screening"])
+def india_screening_status():
+    """Return ICMR-INDIAB dataset access status and model availability."""
+    return get_india_status()
+
+
+@app.get("/api/v1/india-screening/metadata", tags=["india-screening"])
+def india_screening_metadata():
+    """Return ICMR-INDIAB model metadata (honestly reports unavailable until trained)."""
+    return get_india_metadata()
+
+
+@app.get("/api/v1/india-screening/evaluation", tags=["india-screening"])
+def india_screening_evaluation():
+    """Return ICMR-INDIAB evaluation metadata (or unavailable status)."""
+    return get_india_evaluation()
+
+
+@app.post("/api/v1/india-screening/predictions", tags=["india-screening"])
+def create_india_screening_prediction(payload: IndiaScreeningInput, request: Request):
+    """Run India-specific screening prediction ONLY when ICMR-INDIAB model is trained & verified."""
+    art = ready_india_artifacts()
+    client_host = request.headers.get("x-dms-rate-key") or (request.client.host if request.client else "unknown")
+    if not rate_window.allow(client_host):
+        raise HTTPException(status_code=429, detail="Too many screening requests. Wait a minute and try again.", headers={"Retry-After": "60"})
+    result = predict_india(art, payload.model_dump())
+    if not result["ok"]:
+        raise HTTPException(status_code=422, detail={"errors": result.get("errors", []), "warnings": result.get("warnings", [])})
+    return result
+
+
+@app.post("/api/v1/india-screening/history", tags=["india-screening-history"])
+async def india_history_create(
+    payload: SaveIndiaAssessment,
+    user: User,
+    authorization: Annotated[str, Header()],
+):
+    if payload.consent is not True:
+        raise HTTPException(status_code=400, detail="Explicit consent is required before saving an assessment.")
+    art = ready_india_artifacts()
+    result = predict_india(art, payload.inputs.model_dump())
+    if not result["ok"]:
+        raise HTTPException(status_code=422, detail={"errors": result.get("errors", []), "warnings": result.get("warnings", [])})
+    record = {
+        "model_family": "india_indiab",
+        "model_version": result["model_version"],
+        "model_name": result["model"],
+        "model_card_ref": "models/india_indiab/model_card.json",
+        "score": result["probability"],
+        "threshold": result["threshold"],
+        "label": result["label"],
+        "band": result["band"],
+        "inputs": result["inputs"],
+        "missing_inputs": result["missing_inputs"],
+        "consent": True,
+    }
+    saved = await postgrest("POST", "india_assessments", authorization, json_body=record)
+    return {"item": (saved or [None])[0]}
+
+
+@app.get("/api/v1/india-screening/history", tags=["india-screening-history"])
+async def india_history_list(
+    user: User,
+    authorization: Annotated[str, Header()],
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    path = (
+        "india_assessments?select=id,created_at,model_family,model_version,model_name,"
+        "model_card_ref,score,threshold,label,band,inputs,missing_inputs,consent"
+        f"&order=created_at.desc&limit={limit}&offset={offset}"
+    )
+    records, total = await postgrest("GET", path, authorization, exact_count=True)
+    return {"items": records or [], "total": total, "limit": limit, "offset": offset}
+
+
+@app.delete("/api/v1/india-screening/history/{assessment_id}", response_model=DeleteResponse, tags=["india-screening-history"])
+async def india_history_delete(assessment_id: UUID, user: User, authorization: Annotated[str, Header()]):
+    rows = await postgrest("DELETE", f"india_assessments?id=eq.{assessment_id}", authorization, prefer="return=representation")
+    return {"deleted": bool(rows)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CDC BRFSS RESEARCH BENCHMARK — UCI ID 891 (US survey data, independent)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/v1/brfss-benchmark/metadata", tags=["brfss-benchmark"])
+def brfss_benchmark_metadata():
+    """Return metadata for the large US CDC BRFSS research benchmark (no auth)."""
+    return get_brfss_metadata()
+
+
+@app.get("/api/v1/brfss-benchmark/evaluation", tags=["brfss-benchmark"])
+def brfss_benchmark_evaluation():
+    """Return full evaluation metrics, curves, and confusion matrices for CDC BRFSS."""
+    return get_brfss_evaluation()
 

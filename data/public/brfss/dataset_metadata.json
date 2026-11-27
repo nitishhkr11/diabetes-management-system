@@ -1,0 +1,34 @@
+{
+  "uci_id": 891,
+  "name": "CDC Diabetes Health Indicators",
+  "num_instances": 253680,
+  "num_features": 21,
+  "target_column": "Diabetes_binary",
+  "features": [
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "BMI",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "GenHlth",
+    "MentHlth",
+    "PhysHlth",
+    "DiffWalk",
+    "Sex",
+    "Age",
+    "Education",
+    "Income"
+  ],
+  "class_distribution": {
+    "0": 218334,
+    "1": 35346
+  }
+}

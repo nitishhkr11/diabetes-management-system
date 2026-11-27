@@ -201,8 +201,9 @@ export default function ProgressPage() {
           <div className="card card-pad" style={{ marginBottom: 24 }}>
             <h3 style={{ margin: "0 0 16px", fontSize: 16 }}>Model score history</h3>
             <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--muted)" }}>
-              Model scores are attached to the specific model version that generated them.
-              Scores from different model versions are not directly comparable.
+              Scores belong strictly to their own model family and version (Pima, NHANES US benchmark, or
+              ICMR-INDIAB) and are never combined across models. Changes in model scores are{" "}
+              <strong>not</strong> proof of health improvement or deterioration.
               Current model version: <code>ps_v1</code>.
             </p>
             <ResponsiveContainer width="100%" height={200}>

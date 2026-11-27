@@ -223,6 +223,7 @@ def get_public_metadata(art: PublicArtifacts) -> dict:
     return {
         "model_version": art.model_version,
         "model_name": art.model_name,
+        "model_label": "US population research benchmark",
         "model_type": "public_screening",
         "dataset": card.get("dataset", {}),
         "features": art.features,
@@ -242,17 +243,41 @@ def get_public_metadata(art: PublicArtifacts) -> dict:
     }
 
 
+def _read_csv_records(path: Path) -> list[dict]:
+    if not path.is_file():
+        return []
+    import csv
+    import math
+    with path.open(encoding="utf-8", newline="") as f:
+        rows = []
+        for row in csv.DictReader(f):
+            parsed = {}
+            for k, v in row.items():
+                try:
+                    fv = float(v)
+                    parsed[k] = round(fv, 5) if math.isfinite(fv) else None
+                except (TypeError, ValueError):
+                    parsed[k] = v
+            rows.append(parsed)
+        return rows
+
+
 def get_public_evaluation(art: PublicArtifacts) -> dict:
     """Return evaluation data for the research/interviewer dashboard."""
     card = art.card
     return {
         "model_version": art.model_version,
         "model_name": art.model_name,
+        "model_label": "US population research benchmark",
         "dataset": card.get("dataset", {}),
         "target_definition": card.get("target_definition", {}),
         "test_metrics": card.get("test_metrics", {}),
         "test_confidence_intervals": card.get("test_confidence_intervals", {}),
         "calibration_bins": card.get("calibration_bins", []),
+        "roc_curve": _read_csv_records(PUBLIC_REPORTS_DIR / "roc_curve.csv"),
+        "pr_curve": _read_csv_records(PUBLIC_REPORTS_DIR / "pr_curve.csv"),
+        "model_comparison": _read_csv_records(PUBLIC_REPORTS_DIR / "model_comparison.csv"),
+        "feature_importance": _read_csv_records(PUBLIC_REPORTS_DIR / "feature_importance.csv"),
         "features": art.features,
         "feature_labels": card.get("feature_labels", {}),
         "population": card.get("population", ""),
