@@ -1,8 +1,10 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-const localPy = resolve(process.cwd(), "..", process.platform === "win32" ? ".venv\\Scripts\\python.exe" : ".venv/bin/python");
-const py = process.env.PYTHON || (existsSync(localPy) ? localPy : "python");
+const venvRel = process.platform === "win32" ? ".venv\\Scripts\\python.exe" : ".venv/bin/python";
+const localPy = resolve(process.cwd(), "..", venvRel);
+const sharedPy = resolve(process.cwd(), "..", "..", "diabetes-management-system-antigravity", venvRel);
+const py = process.env.GLUCOGUIDE_PYTHON || process.env.PYTHON || (existsSync(localPy) ? localPy : existsSync(sharedPy) ? sharedPy : "python");
 const distDir = process.env.NEXT_DIST_DIR || ".next";
 const port = process.env.E2E_PORT || "3000";
 const nextCommand = existsSync(resolve(process.cwd(), `${distDir}/standalone/server.js`))
