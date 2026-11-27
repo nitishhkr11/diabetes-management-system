@@ -1,5 +1,5 @@
 model,cv_roc_auc,val_roc_auc,val_pr_auc,val_brier,best_params
 Logistic Regression,0.7622462620918896,0.7906080163043478,0.4376305155149272,0.14270182226755232,"{'model__C': 0.01, 'model__class_weight': None}"
-Random Forest,0.7667837418462874,0.7896059782608695,0.44780324278609884,0.17688630120093157,"{'model__class_weight': 'balanced', 'model__max_depth': 8, 'model__n_estimators': 200}"
-Gradient Boosting,0.7683200568842149,0.7746263586956522,0.4215884867220643,0.14628626900058492,"{'model__learning_rate': 0.05, 'model__max_depth': 3, 'model__n_estimators': 200}"
-HistGradientBoosting,0.7546038607320648,0.7644870923913044,0.4161731210332465,0.14976830865071716,"{'model__l2_regularization': 0.0, 'model__learning_rate': 0.05, 'model__max_iter': 100}"
+Random Forest,0.7662550320797858,0.7870414402173913,0.44497416899610065,0.16716122545717066,"{'model__class_weight': 'balanced', 'model__max_depth': 8, 'model__n_estimators': 200}"
+Gradient Boosting,0.7684127270315909,0.774592391304348,0.4202393543071291,0.1463035892163034,"{'model__learning_rate': 0.05, 'model__max_depth': 3, 'model__n_estimators': 200}"
+HistGradientBoosting,0.7536035282819683,0.762313179347826,0.4208458899423537,0.14987409718508707,"{'model__l2_regularization': 0.0, 'model__learning_rate': 0.05, 'model__max_iter': 100}"

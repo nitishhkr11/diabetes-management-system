@@ -14,6 +14,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import platform
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
@@ -270,6 +272,14 @@ def main() -> int:
         "model_version": "brfss_v1",
         "model_label": "Large US survey research benchmark (CDC BRFSS)",
         "selected_model": best_model,
+        "python_version": platform.python_version(),
+        "sklearn_version": sklearn.__version__,
+        "package_versions": {
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scikit-learn": sklearn.__version__,
+            "joblib": joblib.__version__,
+        },
         "selection_reasoning": (
             f"Selected {best_model} based on balanced 5-fold cross-validation performance "
             f"(combining CV ROC-AUC, CV balanced accuracy, and CV F1) rather than accuracy alone."

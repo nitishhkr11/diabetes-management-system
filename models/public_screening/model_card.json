@@ -2,14 +2,14 @@
   "model_version": "ps_v1",
   "model_type": "public_screening",
   "selected_model": "Logistic Regression",
-  "trained_at": "2026-11-26T15:40:02.317551Z",
-  "python_version": "3.13.15",
-  "sklearn_version": "1.9.1",
+  "trained_at": "2026-11-27T09:49:02.666274Z",
+  "python_version": "3.11.9",
+  "sklearn_version": "1.8.0",
   "package_versions": {
-    "numpy": "2.5.3",
-    "pandas": "3.0.5",
-    "scipy": "1.18.1",
-    "scikit-learn": "1.9.1"
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.8.0"
   },
   "dataset": {
     "source": "NHANES 2017-2018 (cycle J)",
@@ -330,7 +330,7 @@
     }
   ],
   "model_file": "selected_model.joblib",
-  "model_sha256": "d64fbe7bc58646ecf2f86638e997dd2fbff2d956625ad58efeaf417026706f23",
+  "model_sha256": "2bb91f566482822fa76adcfcc05e18586ee58be5eba6b3baed321b0dd3a8c160",
   "intended_use": "Public screening estimation from non-laboratory measurements. Educational and research prototype; not a medical device or clinical risk calculator.",
   "population": "US non-institutionalized civilian adults aged 21+. Modeled on NHANES 2015-2016 and 2017-2018. NOT validated on other populations.",
   "population_limitations": [
