@@ -1,49 +1,84 @@
-import { z } from "zod";
-
-export type Contribution = { feature: string; value: number | null; contribution: number; was_missing: boolean };
-export type Explanation = { units: string; contributions: Contribution[]; output_value: number; base_value: number; additivity_error: number };
-export type Prediction = {
-  ok: true; probability: number; threshold: number; label: number; band: string;
-  model: string; model_version: string; inputs: Record<string, number | null>;
-  input_sources: Record<string, "manual" | "report">;
-  all_models: Record<string, number>; explanation: Explanation; warnings: string[];
+export type IdrsBreakdown = {
+  age_points: number;
+  waist_points: number;
+  activity_points: number;
+  family_history_points: number;
 };
-export type AssessmentInputs = {
-  Pregnancies: number; Glucose: number | null; BloodPressure: number | null;
-  SkinThickness: number | null; Insulin: number | null; BMI: number | null;
-  DiabetesPedigreeFunction: number; Age: number;
+
+export type IdrsResult = {
+  ok: true;
+  tool: "mdrf_idrs";
+  guideline_version: string;
+  source_url: string;
+  score: number;
+  max_score: number;
+  risk_category: "low" | "moderate" | "high";
+  risk_label: string;
+  next_steps: string;
+  breakdown: IdrsBreakdown;
+  normalized_inputs: {
+    age_years: number;
+    sex: "female" | "male";
+    waist_cm: number;
+    physical_activity: "vigorous" | "moderate" | "mild" | "sedentary";
+    family_history: "none" | "one_parent" | "both_parents";
+  };
+  limitations: string[];
+  disclaimer: string;
+};
+
+export type LabFinding = {
+  test: string;
+  value_display: string;
+  category: "normal" | "prediabetes" | "diabetes" | "indeterminate";
+  label: string;
+};
+
+export type LabInterpretResult = {
+  ok: true;
+  tool: "lab_interpretation";
+  guideline_version: string;
+  pregnancy_pathway: boolean;
+  overall_category: string;
+  overall_label: string;
+  results: LabFinding[];
+  confirmation_required: boolean;
+  guidance: string;
+  guideline_notes: string[];
+  disclaimer: string;
+};
+
+export type IndiaRiskRecord = {
+  id: string;
+  created_at: string;
+  assessment_type: "mdrf_idrs" | "lab_interpretation";
+  guideline_version: string;
+  result_category: string;
+  score: number | null;
+  inputs: Record<string, unknown>;
+  result_payload: IdrsResult | LabInterpretResult;
+  consent: boolean;
 };
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/dms${path}`, { ...init, cache: "no-store", headers: { "Content-Type": "application/json", ...init?.headers } });
+  const response = await fetch(`/api/dms${path}`, {
+    ...init,
+    cache: "no-store",
+    headers: { "Content-Type": "application/json", ...init?.headers },
+  });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const detail = body.detail;
-    const validationErrors = Array.isArray(detail) ? detail.map((item: { msg?: string }) => item.msg).filter(Boolean).join(" ") : "";
-    throw new Error(typeof detail === "string" ? detail : Array.isArray(detail?.errors) ? detail.errors.join(" ") : validationErrors || "The request could not be completed.");
+    const validationErrors = Array.isArray(detail)
+      ? detail.map((item: { message?: string; msg?: string }) => item.message || item.msg).filter(Boolean).join(" ")
+      : "";
+    throw new Error(
+      typeof detail === "string"
+        ? detail
+        : Array.isArray(detail?.errors)
+          ? detail.errors.join(" ")
+          : validationErrors || "The request could not be completed."
+    );
   }
   return response.json() as Promise<T>;
 }
-
-export const featureFields = [
-  { key: "Pregnancies", label: "Pregnancies", unit: "count", help: "Zero is a valid value.", required: true, min: 0, max: 20, step: 1 },
-  { key: "Glucose", label: "Glucose after glucose load", unit: "mg/dL", help: "The benchmark records a 2-hour measurement. Enter 0 if not measured.", required: false, min: 0, max: 500, step: 1 },
-  { key: "BloodPressure", label: "Diastolic blood pressure", unit: "mm Hg", help: "Enter 0 if not measured.", required: false, min: 0, max: 150, step: 1 },
-  { key: "BMI", label: "Body mass index", unit: "kg/m²", help: "Enter 0 if not measured.", required: false, min: 0, max: 80, step: 0.1 },
-  { key: "SkinThickness", label: "Triceps skinfold thickness", unit: "mm", help: "Enter 0 if not measured.", required: false, min: 0, max: 100, step: 1 },
-  { key: "Insulin", label: "Serum insulin after glucose load", unit: "µU/mL", help: "The benchmark records a 2-hour measurement. Enter 0 if not measured.", required: false, min: 0, max: 1000, step: 1 },
-  { key: "DiabetesPedigreeFunction", label: "Family-history score", unit: "benchmark index", help: "Dataset-specific score derived from family history.", required: true, min: 0, max: 3, step: 0.01 },
-  { key: "Age", label: "Age", unit: "years", help: "The benchmark population starts at age 21.", required: true, min: 0, max: 100, step: 1 },
-] as const;
-
-export const featureNames: Record<string, string> = Object.fromEntries(featureFields.map((field) => [field.key, field.label]));
-export const assessmentSchema = z.object({
-  Pregnancies: z.number().min(0).max(20),
-  Glucose: z.number().min(0).max(500).nullable(),
-  BloodPressure: z.number().min(0).max(150).nullable(),
-  SkinThickness: z.number().min(0).max(100).nullable(),
-  Insulin: z.number().min(0).max(1000).nullable(),
-  BMI: z.number().min(0).max(80).nullable(),
-  DiabetesPedigreeFunction: z.number().min(.01).max(3),
-  Age: z.number().min(21).max(100),
-});

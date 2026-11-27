@@ -1,86 +1,51 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Download, Minus, TrendingUp } from "lucide-react";
+import { ArrowRight, Download, TrendingUp } from "lucide-react";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/browser";
+import { api, IndiaRiskRecord } from "@/lib/api";
 
-interface ScreeningRecord {
-  id: string;
-  created_at: string;
-  model_version: string;
-  model_name: string;
-  score: number;
-  label: number;
-  band: string;
-  threshold: number;
-  inputs: Record<string, number | null>;
-  dataset: string;
-}
+const MMOL_TO_MGDL = 18.0182;
 
-interface IndiaRiskRecord {
-  id: string;
-  created_at: string;
-  assessment_type: "mdrf_idrs" | "lab_interpretation";
-  guideline_version: string;
-  result_category: string;
-  score: number | null;
-}
-
-const MEASUREMENT_SERIES = [
-  { key: "bmi",        label: "BMI",                    unit: "kg/m²",   color: "#c75d25" },
-  { key: "waist_cm",   label: "Waist circumference",    unit: "cm",       color: "#702b3a" },
-  { key: "sys_bp",     label: "Systolic BP",            unit: "mmHg",     color: "#4a7c59" },
-  { key: "dia_bp",     label: "Diastolic BP",           unit: "mmHg",     color: "#3a6b8a" },
-  { key: "weight_kg",  label: "Weight",                 unit: "kg",       color: "#8a5a3a" },
-];
-
-function Delta({ first, last, unit }: { first: number | null; last: number | null; unit: string }) {
-  if (first == null || last == null) return <span style={{ color: "var(--muted)" }}>—</span>;
-  const diff = last - first;
-  const pct = first !== 0 ? ((diff / first) * 100).toFixed(1) : null;
-  return (
-    <span style={{ color: diff < 0 ? "var(--success)" : diff > 0 ? "var(--warning)" : "var(--muted)", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-      {diff > 0 ? <ArrowUp size={14} /> : diff < 0 ? <ArrowDown size={14} /> : <Minus size={14} />}
-      {diff > 0 ? "+" : ""}{diff.toFixed(1)} {unit}
-      {pct && <span style={{ fontWeight: 400, fontSize: 11 }}>({pct}%)</span>}
-    </span>
-  );
+function toMgDl(val: unknown, unit: unknown): number | null {
+  if (typeof val !== "number" || Number.isNaN(val)) return null;
+  if (unit === "mmol/L") return Number((val * MMOL_TO_MGDL).toFixed(1));
+  return Number(val.toFixed(1));
 }
 
 export default function ProgressPage() {
-  const [records, setRecords] = useState<ScreeningRecord[]>([]);
-  const [indiaRiskRecords, setIndiaRiskRecords] = useState<IndiaRiskRecord[]>([]);
+  const [records, setRecords] = useState<IndiaRiskRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [activeSeries, setActiveSeries] = useState<string>("bmi");
 
   useEffect(() => {
     (async () => {
       try {
         const sb = createClient();
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) { setError("Sign in to view your progress."); setLoading(false); return; }
-        const res = await fetch("/api/dms/api/v1/public-screening/history?limit=100", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Could not load history.");
-        const data = await res.json();
-        setRecords(data.items || []);
-        const r2 = await fetch("/api/dms/api/v1/india-risk/history?limit=100", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          cache: "no-store",
-        });
-        if (r2.ok) {
-          const d2 = await r2.json();
-          setIndiaRiskRecords(d2.items || []);
+        if (!session) {
+          setError("Sign in to view your trends and progress.");
+          setLoading(false);
+          return;
         }
+        const data = await api<{ items: IndiaRiskRecord[] }>(
+          "/api/v1/india-risk/history?limit=100",
+          { headers: { Authorization: `Bearer ${session.access_token}` } }
+        );
+        setRecords(data.items || []);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "Failed to load.");
+        setError(e instanceof Error ? e.message : "Failed to load saved history.");
       } finally {
         setLoading(false);
       }
@@ -93,14 +58,15 @@ export default function ProgressPage() {
       const sb = createClient();
       const { data: { session } } = await sb.auth.getSession();
       if (!session) return;
-      const res = await fetch("/api/dms/api/v1/public-screening/history/export", {
+      const res = await fetch("/api/dms/api/v1/india-risk/history/export", {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
+      if (!res.ok) throw new Error("Export failed.");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "screening-history.csv";
+      a.download = "glucoguide-india-history.csv";
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -108,33 +74,51 @@ export default function ProgressPage() {
     }
   }
 
-  if (loading) return <div style={{ padding: 40, color: "var(--muted)" }}>Loading…</div>;
-  if (error) return (
-    <div style={{ padding: 40 }}>
-      <p style={{ color: "var(--warning)" }}>{error}</p>
-      <Link href="/auth/login" className="btn" style={{ marginTop: 12 }}>Sign in</Link>
-    </div>
-  );
+  if (loading) return <div style={{ padding: 40, color: "var(--muted)" }}>Loading your progress…</div>;
+  if (error) {
+    return (
+      <div style={{ padding: 40 }}>
+        <p className="status-error">{error}</p>
+        <Link href="/auth/login?next=/dashboard/progress" className="btn">Sign in</Link>
+      </div>
+    );
+  }
 
-  const sorted = [...records].sort((a, b) => a.created_at.localeCompare(b.created_at));
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
+  const chronological = [...records].sort((a, b) => a.created_at.localeCompare(b.created_at));
 
-  // Build chart data for selected series
-  const ser = MEASUREMENT_SERIES.find((s) => s.key === activeSeries)!;
-  const chartData = sorted.map((r) => ({
-    date: new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    value: r.inputs[ser.key] ?? null,
-    score: Math.round(r.score * 100),
-  }));
+  const idrsSeries = chronological
+    .filter((r) => r.assessment_type === "mdrf_idrs" && r.score != null)
+    .map((r) => ({
+      date: new Date(r.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+      score: r.score as number,
+      category: r.result_category,
+    }));
+
+  const hba1cSeries = chronological
+    .filter((r) => r.assessment_type === "lab_interpretation" && typeof r.inputs?.hba1c_pct === "number")
+    .map((r) => ({
+      date: new Date(r.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+      value: r.inputs.hba1c_pct as number,
+    }));
+
+  const fpgSeries = chronological
+    .filter((r) => r.assessment_type === "lab_interpretation" && typeof r.inputs?.fasting_glucose === "number")
+    .map((r) => ({
+      date: new Date(r.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+      value: toMgDl(r.inputs.fasting_glucose, r.inputs.fasting_unit) as number,
+    }))
+    .filter((d) => d.value != null);
 
   return (
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">PERSONAL PROGRESS · SCREENING HISTORY</div>
-          <h1>Measurement progress</h1>
-          <p>Your saved screening assessments, chronologically. {records.length === 0 && "No assessments saved yet."}</p>
+          <div className="eyebrow">PERSONAL PROGRESS · REAL SAVED RECORDS</div>
+          <h1>Trends &amp; Progress</h1>
+          <p>
+            Separate chronological charts for comparable assessments. Compatible units are enforced; different test
+            types are never mixed into one chart.
+          </p>
         </div>
         {records.length > 0 && (
           <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>
@@ -144,180 +128,110 @@ export default function ProgressPage() {
       </div>
 
       {records.length === 0 ? (
-        <div className="card card-pad" style={{ textAlign: "center", padding: "60px 20px" }}>
-          <TrendingUp size={40} style={{ color: "var(--muted)", marginBottom: 12 }} />
-          <h3 style={{ marginBottom: 8 }}>No assessments yet</h3>
-          <p style={{ color: "var(--muted)" }}>
-            Complete a screening and save it to start tracking your measurements over time.
-          </p>
-          <Link href="/screening" className="btn" style={{ marginTop: 16 }}>
-            Start a screening
-          </Link>
+        <div className="card empty-state">
+          <div>
+            <span className="empty-mark"><TrendingUp size={24} /></span>
+            <h2>Your health journey starts here.</h2>
+            <p>Save at least two comparable MDRF-IDRS or lab-test records to see chronological trends.</p>
+            <Link className="btn" href="/screening">
+              Check Your Risk <ArrowRight size={15} />
+            </Link>
+          </div>
         </div>
       ) : (
-        <>
-          {/* Summary cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
-            {MEASUREMENT_SERIES.filter((s) => last?.inputs[s.key] != null).map((s) => (
-              <div key={s.key} className="card card-pad" style={{ padding: 16 }}>
-                <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, marginBottom: 6 }}>
-                  {s.label}
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 2 }}>
-                  {last.inputs[s.key]?.toFixed(1)} <span style={{ fontSize: 11, color: "var(--muted)" }}>{s.unit}</span>
-                </div>
-                {records.length > 1 && <Delta first={first.inputs[s.key]} last={last.inputs[s.key]} unit={s.unit} />}
-              </div>
-            ))}
-            <div className="card card-pad" style={{ padding: 16 }}>
-              <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, marginBottom: 6 }}>Assessments</div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>{records.length}</div>
-              <div style={{ fontSize: 11, color: "var(--muted)" }}>saved total</div>
-            </div>
-          </div>
-
-          {/* Trend chart */}
-          <div className="card card-pad" style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 16 }}>Measurement trend</h3>
-              <div style={{ display: "flex", gap: 6 }}>
-                {MEASUREMENT_SERIES.map((s) => (
-                  <button
-                    key={s.key}
-                    onClick={() => setActiveSeries(s.key)}
-                    style={{
-                      padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, cursor: "pointer",
-                      border: `1px solid ${activeSeries === s.key ? s.color : "var(--border)"}`,
-                      background: activeSeries === s.key ? s.color : "transparent",
-                      color: activeSeries === s.key ? "#fff" : "var(--muted)",
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+        <div style={{ display: "grid", gap: 18 }}>
+          {/* Chart A: MDRF-IDRS */}
+          <section className="card card-pad">
+            <div className="section-title">
+              <div>
+                <h2>MDRF-IDRS Screening Score Over Time (0–100)</h2>
+                <p>Reference lines at 30 (Moderate threshold) and 60 (High risk threshold). Screening score only.</p>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}
-                  formatter={(v) => [v != null ? `${Number(v)} ${ser.unit}` : "—", ser.label]}
-                />
-                <Line
-                  type="monotone" dataKey="value" stroke={ser.color}
-                  strokeWidth={2.5} dot={{ r: 4 }} connectNulls={false}
-                  name={ser.label}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+            {idrsSeries.length < 2 ? (
+              <p style={{ color: "var(--muted)", fontSize: 13.5, margin: 0 }}>
+                {idrsSeries.length === 1
+                  ? `1 saved MDRF-IDRS score (${idrsSeries[0].score}/100 on ${idrsSeries[0].date}). Save another assessment later to plot a trend.`
+                  : "No saved MDRF-IDRS records yet."}
+              </p>
+            ) : (
+              <div style={{ width: "100%", height: 260 }} aria-label="MDRF-IDRS score trend chart">
+                <ResponsiveContainer>
+                  <LineChart data={idrsSeries} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="date" stroke="var(--muted)" fontSize={12} />
+                    <YAxis domain={[0, 100]} stroke="var(--muted)" fontSize={12} />
+                    <Tooltip />
+                    <ReferenceLine y={30} stroke="var(--warning)" strokeDasharray="4 4" label={{ value: "30 Mod", fill: "var(--warning)", fontSize: 11 }} />
+                    <ReferenceLine y={60} stroke="var(--danger)" strokeDasharray="4 4" label={{ value: "60 High", fill: "var(--danger)", fontSize: 11 }} />
+                    <Line type="monotone" dataKey="score" name="MDRF-IDRS" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
 
-          {/* Model score trend */}
-          <div className="card card-pad" style={{ marginBottom: 24 }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 16 }}>Model score history</h3>
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--muted)" }}>
-              Scores belong strictly to their own model family and version (Pima, NHANES US benchmark, or
-              ICMR-INDIAB) and are never combined across models. Changes in model scores are{" "}
-              <strong>not</strong> proof of health improvement or deterioration.
-              Current model version: <code>ps_v1</code>.
-            </p>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}
-                  formatter={(v) => [`${Number(v)}%`, "Score"]}
-                />
-                <ReferenceLine
-                  y={Math.round((last?.threshold ?? 0.26) * 100)}
-                  stroke="var(--warning)" strokeDasharray="4 4"
-                  label={{ value: "threshold", position: "right", fontSize: 10 }}
-                />
-                <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {/* Chart B: HbA1c */}
+          <section className="card card-pad">
+            <div className="section-title">
+              <div>
+                <h2>HbA1c (%) Over Time</h2>
+                <p>Reference lines at 5.7% (Prediabetes) and 6.5% (Diabetes range). Lowering values do not imply cure without clinical review.</p>
+              </div>
+            </div>
+            {hba1cSeries.length < 2 ? (
+              <p style={{ color: "var(--muted)", fontSize: 13.5, margin: 0 }}>
+                {hba1cSeries.length === 1
+                  ? `1 saved HbA1c entry (${hba1cSeries[0].value}% on ${hba1cSeries[0].date}). Save a follow-up HbA1c later to plot a trend.`
+                  : "No saved HbA1c records yet."}
+              </p>
+            ) : (
+              <div style={{ width: "100%", height: 260 }} aria-label="HbA1c trend chart">
+                <ResponsiveContainer>
+                  <LineChart data={hba1cSeries} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="date" stroke="var(--muted)" fontSize={12} />
+                    <YAxis domain={["auto", "auto"]} stroke="var(--muted)" fontSize={12} unit="%" />
+                    <Tooltip />
+                    <ReferenceLine y={5.7} stroke="var(--warning)" strokeDasharray="4 4" label={{ value: "5.7%", fill: "var(--warning)", fontSize: 11 }} />
+                    <ReferenceLine y={6.5} stroke="var(--danger)" strokeDasharray="4 4" label={{ value: "6.5%", fill: "var(--danger)", fontSize: 11 }} />
+                    <Line type="monotone" dataKey="value" name="HbA1c (%)" stroke="var(--secondary)" strokeWidth={2.5} dot={{ r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
 
-          {/* History table */}
-          <div className="card" style={{ overflow: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid var(--border)", background: "var(--surface-soft)" }}>
-                  <th style={{ padding: "10px 16px", textAlign: "left", fontWeight: 700 }}>Date</th>
-                  <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700 }}>Score</th>
-                  <th style={{ padding: "10px 16px", textAlign: "left", fontWeight: 700 }}>Result</th>
-                  <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700 }}>BMI</th>
-                  <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700 }}>Waist (cm)</th>
-                  <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700 }}>Sys BP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...records].reverse().map((r) => (
-                  <tr key={r.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "9px 16px" }}>
-                      {new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                    </td>
-                    <td style={{ padding: "9px 16px", textAlign: "right", fontWeight: 700 }}>
-                      {Math.round(r.score * 100)}%
-                    </td>
-                    <td style={{ padding: "9px 16px" }}>
-                      <span style={{
-                        padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 700,
-                        background: r.label === 1 ? "var(--warning-bg)" : "color-mix(in srgb,var(--success) 10%,transparent)",
-                        color: r.label === 1 ? "var(--warning)" : "var(--success)",
-                      }}>
-                        {r.band === "higher" ? "Higher" : "Lower"}
-                      </span>
-                    </td>
-                    <td style={{ padding: "9px 16px", textAlign: "right" }}>
-                      {r.inputs.bmi?.toFixed(1) ?? "—"}
-                    </td>
-                    <td style={{ padding: "9px 16px", textAlign: "right" }}>
-                      {r.inputs.waist_cm?.toFixed(0) ?? "—"}
-                    </td>
-                    <td style={{ padding: "9px 16px", textAlign: "right" }}>
-                      {r.inputs.sys_bp?.toFixed(0) ?? "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-      {/* India Risk & Lab History */}
-      {indiaRiskRecords.length > 0 && (
-        <div className="card card-pad" style={{ marginTop: 24 }}>
-          <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>India Risk (MDRF-IDRS) &amp; Lab Interpretation History</h3>
-          <div style={{ overflow: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid var(--border)", textAlign: "left" }}>
-                  <th style={{ padding: "8px 10px" }}>Date</th>
-                  <th style={{ padding: "8px 10px" }}>Type</th>
-                  <th style={{ padding: "8px 10px" }}>Category</th>
-                  <th style={{ padding: "8px 10px" }}>Score</th>
-                  <th style={{ padding: "8px 10px" }}>Guideline</th>
-                </tr>
-              </thead>
-              <tbody>
-                {indiaRiskRecords.map((item) => (
-                  <tr key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "8px 10px" }}>{new Date(item.created_at).toLocaleDateString()}</td>
-                    <td style={{ padding: "8px 10px" }}>{item.assessment_type === "mdrf_idrs" ? "MDRF-IDRS" : "Lab Interpretation"}</td>
-                    <td style={{ padding: "8px 10px", fontWeight: 700 }}>{item.result_category}</td>
-                    <td style={{ padding: "8px 10px" }}>{item.score != null ? `${item.score}/100` : "—"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--muted)" }}>{item.guideline_version}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Chart C: Fasting Plasma Glucose */}
+          <section className="card card-pad">
+            <div className="section-title">
+              <div>
+                <h2>Fasting Plasma Glucose (mg/dL) Over Time</h2>
+                <p>Converted to mg/dL for consistent comparison. Reference lines at 100 mg/dL (ADA IFG) and 126 mg/dL.</p>
+              </div>
+            </div>
+            {fpgSeries.length < 2 ? (
+              <p style={{ color: "var(--muted)", fontSize: 13.5, margin: 0 }}>
+                {fpgSeries.length === 1
+                  ? `1 saved Fasting Glucose entry (${fpgSeries[0].value} mg/dL on ${fpgSeries[0].date}). Save another fasting result later to plot a trend.`
+                  : "No saved Fasting Plasma Glucose records yet."}
+              </p>
+            ) : (
+              <div style={{ width: "100%", height: 260 }} aria-label="Fasting plasma glucose trend chart">
+                <ResponsiveContainer>
+                  <LineChart data={fpgSeries} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="date" stroke="var(--muted)" fontSize={12} />
+                    <YAxis domain={["auto", "auto"]} stroke="var(--muted)" fontSize={12} />
+                    <Tooltip />
+                    <ReferenceLine y={100} stroke="var(--warning)" strokeDasharray="4 4" label={{ value: "100 mg/dL", fill: "var(--warning)", fontSize: 11 }} />
+                    <ReferenceLine y={126} stroke="var(--danger)" strokeDasharray="4 4" label={{ value: "126 mg/dL", fill: "var(--danger)", fontSize: 11 }} />
+                    <Line type="monotone" dataKey="value" name="Fasting Glucose (mg/dL)" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
         </div>
       )}
     </>

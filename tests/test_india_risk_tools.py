@@ -1,14 +1,17 @@
 """
 Comprehensive tests for MDRF-IDRS, Laboratory Result Interpretation,
-India Risk API routes, and preservation of existing models.
+FastAPI endpoints, authentication/consent/RLS safeguards, and input validation.
 """
 from __future__ import annotations
 
+from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
 from src.lab_interpretation import interpret_lab_results
 from src.mdrf_idrs import compute_mdrf_idrs
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 # ---------------------------------------------------------------------------
@@ -139,12 +142,15 @@ def test_lab_invalid_values_rejected():
 
 
 # ---------------------------------------------------------------------------
-# 3. API & existing functionality preservation tests
+# 3. API, Auth, Consent & RLS Schema tests
 # ---------------------------------------------------------------------------
 
-def test_api_india_risk_endpoints_and_preservation():
+def test_api_india_risk_endpoints_and_security():
     from backend.main import app
     client = TestClient(app, raise_server_exceptions=False)
+
+    assert client.get("/health/live").status_code == 200
+    assert client.get("/health/ready").status_code == 200
 
     r_idrs = client.post("/api/v1/india-risk/idrs", json={
         "age_years": 42,
@@ -175,12 +181,16 @@ def test_api_india_risk_endpoints_and_preservation():
     assert r_lab.json()["overall_category"] == "diabetes_range"
     assert r_lab.json()["confirmation_required"] is True
 
-    # Auth required for history
-    r_hist = client.get("/api/v1/india-risk/history")
-    assert r_hist.status_code == 401
+    # Auth required for all history endpoints
+    assert client.get("/api/v1/india-risk/history").status_code == 401
+    assert client.get("/api/v1/india-risk/history/export").status_code == 401
+    assert client.post("/api/v1/india-risk/history", json={"consent": True, "assessment_type": "mdrf_idrs"}).status_code == 401
+    assert client.delete("/api/v1/india-risk/history").status_code == 401
 
-    # Existing models preserved
-    assert client.get("/api/v1/metadata").status_code == 200
-    assert client.get("/api/v1/public-screening/metadata").status_code == 200
-    assert client.get("/api/v1/brfss-benchmark/metadata").status_code == 200
-    assert client.get("/api/v1/india-screening/status").json()["permission_status"] == "NOT REQUESTED"
+
+def test_supabase_rls_schema_present():
+    schema = (ROOT / "backend" / "schema_india_screening.sql").read_text(encoding="utf-8")
+    assert "india_risk_assessments" in schema
+    assert "enable row level security" in schema
+    assert "auth.uid()) = user_id" in schema
+    assert "consent = true" in schema

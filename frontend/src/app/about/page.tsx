@@ -1,13 +1,164 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight, LockKeyhole, ShieldAlert, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { MiniFlow } from "@/components/glucose-illustration";
+
 export const metadata: Metadata = { title: "About, methodology & privacy" };
 
-const stack = ["Next.js App Router · TypeScript", "FastAPI · Pydantic", "scikit-learn · pandas · SHAP", "Supabase Auth · PostgreSQL RLS", "Recharts · responsive CSS theme tokens"];
-export default function AboutPage(){return <><PageHeader eyebrow="PROJECT · METHOD · PRIVACY" title="A transparent student research prototype" description="Diabetes Management System brings together verified dataset handling, nested model comparisons, model explanations, reliability analysis and patient-friendly education."/>
- <section className="card card-pad" style={{marginBottom:16}}><div className="section-title"><div><h2>Project objective</h2><p>Engineering integration and scientific transparency.</p></div></div><div className="content-copy"><p>The project demonstrates an end-to-end educational ML workflow, from strict data identity checks and leakage-safe pipelines to evaluation, explanations and a public-facing research interface. It does not propose a novel algorithm or a clinically validated product. No team contribution claims are made because no contributor information was supplied.</p></div><MiniFlow/></section>
- <div className="content-grid" style={{marginBottom:16}}><section className="card content-card"><h2>Dataset provenance</h2><p>Verified Pima Indians Diabetes benchmark, redistributed from the Plotly datasets mirror. The expected file has 768 rows, 8 predictors and a binary Outcome label.</p><p>Raw SHA-256: <code>698c203a14aa31941d2251175330c9199f3ccdb31597abbba2a3e35416257a72</code></p><p>Canonical values SHA-256: <code>00921e2c6a3f645b215270e6b481a1b3e6283f1db4ee498d0de9b5a9cd0b240b</code></p><p>Often described as data from women of Pima heritage aged 21 and older. It is small, historic and not representative of all populations.</p></section><section className="card content-card"><h2>Preprocessing & evaluation</h2><p>Zero values in Glucose, BloodPressure, SkinThickness, Insulin and BMI are treated as missing; zero pregnancies is valid. Median imputation and scaling are fitted inside each training fold.</p><p>Stratified 80:20 split; nested 5-fold outer / 4-fold inner CV on training rows; selection by nested OOF ROC-AUC and simplicity tie-break. Only the selected model is evaluated on the untouched holdout.</p></section><section className="card content-card"><h2>Research basis</h2><p>The three approved models are compared with RBF SVM and Gradient Boosting. Hyperparameters and class weighting are assessed inside training folds. SHAP provides local feature contributions for the exact selected pipeline and input row. These attributions explain model behavior, not cause.</p><p>Reliability evidence includes confusion counts, recall, false negatives, ROC-AUC, PR-AUC, Brier score, calibration bins, a predeclared threshold objective and stratified bootstrap intervals.</p></section><section className="card content-card"><h2>Limitations</h2><ul><li>One small historical benchmark with narrow demographics.</li><li>No external validation or subgroup fairness assessment.</li><li>No clinical calibration or prospective evaluation.</li><li>Binary labels cannot identify diabetes types.</li><li>Not a device, diagnostic tool, screening system or treatment service.</li></ul></section></div>
- <section className="card card-pad" style={{marginBottom:16}}><div className="section-title"><div><h2>Architecture & tools</h2><p>Offline training is separate from online inference.</p></div></div><div className="mini-flow"><span>Verified CSV</span><span>→</span><span>scripts/train.py</span><span>→</span><span>SHA-256 artifacts</span><span>→</span><span>FastAPI</span><span>→</span><span>Next.js</span></div><div className="glossary" style={{marginTop:13}}>{stack.map((tool)=><article key={tool}><b>{tool}</b><p>Chosen for an understandable separation of presentation, serving, auth and reproducible ML.</p></article>)}</div></section>
- <section className="card card-pad" id="privacy"><div className="section-title"><div><h2>Privacy and account history</h2><p>History is optional, account-scoped and explicit.</p></div></div><div className="content-copy"><ul><li>The public education pages and synthetic estimator demo do not save user data.</li><li>Signed-in users must check a separate consent box after a result to save its eight inputs, score, threshold, model version and SHAP explanation.</li><li>History requests are validated against the signed-in Supabase Auth session. Supabase PostgreSQL row-level security checks ownership using <code>auth.uid()</code> for every read, insert and delete.</li><li>Users can export their own history and delete individual records or all records. Account self-deletion is not configured; the project owner manages account removal through Supabase.</li><li>This student project has not undergone a regulatory, privacy or security compliance review. Do not enter identifiable or real patient information.</li></ul></div></section>
- <div className="note" style={{marginTop:16}}><span><b>Health and safety.</b> The model score is not a personal medical probability. It cannot diagnose or rule out diabetes. If you have a health concern, contact a qualified healthcare professional for appropriate testing and advice.</span></div>
- </>;}
+const stack = [
+  { name: "Next.js App Router & TypeScript", role: "Responsive, accessible web interface with typed API contracts." },
+  { name: "FastAPI & Pydantic", role: "Strict server-side input validation, rate limiting, and deterministic rule engines." },
+  { name: "Supabase Auth & PostgreSQL RLS", role: "Authenticated user sessions and row-level ownership enforcement." },
+  { name: "Recharts & Custom SVG Scales", role: "Clear, real-data-only visual indicators and chronological trends." },
+];
+
+export default function AboutPage() {
+  return (
+    <>
+      <PageHeader
+        eyebrow="ABOUT · METHODOLOGY · PRIVACY"
+        title="How GlucoGuide works"
+        description="A clear, evidence-grounded diabetes risk-screening and blood-test literacy platform built for adults in India."
+        action={
+          <Link className="btn" href="/screening">
+            Check Your Risk <ArrowRight size={15} />
+          </Link>
+        }
+      />
+
+      <div className="content-grid" style={{ marginBottom: 18 }}>
+        <section className="card content-card">
+          <h2>1. What GlucoGuide does</h2>
+          <p>
+            GlucoGuide helps ordinary adults in India understand their diabetes risk when they do not have a blood test,
+            and understand existing laboratory blood-test results when they already have a report. Signed-in users can
+            also optionally save assessments and review personal trends over time.
+          </p>
+        </section>
+
+        <section className="card content-card">
+          <h2>2. Why diabetes risk screening matters</h2>
+          <p>
+            Type 2 diabetes often develops gradually without obvious symptoms. Early risk awareness encourages timely
+            preventive check-ups and lifestyle discussions with a qualified healthcare professional before complications
+            arise.
+          </p>
+        </section>
+
+        <section className="card content-card">
+          <h2>3. What MDRF-IDRS is</h2>
+          <p>
+            The <strong>Madras Diabetes Research Foundation Indian Diabetes Risk Score (MDRF-IDRS)</strong> is a
+            published, non-laboratory screening score (0–100) using age, sex-specific waist circumference, physical
+            activity level, and parental history of diabetes.
+          </p>
+          <p>
+            Scores below 30 indicate low screening risk, 30–50 moderate risk, and 60 or above high risk. It is a
+            deterministic clinical scoring table — not a machine-learning prediction.
+          </p>
+        </section>
+
+        <section className="card content-card">
+          <h2>4. Why we use an Indian screening score</h2>
+          <p>
+            South Asian and Indian adults often develop metabolic risk at lower BMI and waist thresholds than Western
+            populations. MDRF-IDRS was evaluated across Indian adults aged 20+ in the published{" "}
+            <strong>ICMR-INDIAB</strong> population-based study.
+          </p>
+          <p>
+            GlucoGuide implements the published MDRF-IDRS scoring table directly and does not claim access to or
+            training on raw ICMR-INDIAB participant records.
+          </p>
+        </section>
+
+        <section className="card content-card">
+          <h2>5. Why there are two pathways</h2>
+          <p>
+            People visit with different needs: some have no blood tests yet and need non-invasive screening (Pathway A),
+            while others already hold a lab report and want plain-language context for their HbA1c or glucose values
+            (Pathway B). Keeping these pathways separate prevents confusion.
+          </p>
+        </section>
+
+        <section className="card content-card">
+          <h2>6. How laboratory interpretation works</h2>
+          <p>
+            Pathway B evaluates HbA1c (%), Fasting Plasma Glucose, 2-hour OGTT, and Random Plasma Glucose (with `mg/dL`
+            and `mmol/L` conversion) against ADA and ICMR/WHO criteria. It enforces pregnancy routing, random-glucose
+            symptom checks, and clinical confirmation reminders.
+          </p>
+        </section>
+      </div>
+
+      <section className="card card-pad" style={{ marginBottom: 18 }}>
+        <div className="section-title">
+          <div>
+            <h2>7. What GlucoGuide cannot do</h2>
+            <p>Clear boundaries for safe use.</p>
+          </div>
+          <ShieldAlert size={18} color="var(--warning)" />
+        </div>
+        <div className="content-copy">
+          <ul>
+            <li>GlucoGuide is <strong>not</strong> an AI diagnostic system and cannot diagnose or rule out diabetes.</li>
+            <li>MDRF-IDRS is not validated for individuals younger than 20 years and does not output a personalised disease probability.</li>
+            <li>A single home glucometer reading cannot establish a clinical diagnosis.</li>
+            <li>Pregnant users must follow dedicated gestational diabetes clinical testing rather than standard adult cutoffs.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="card card-pad" style={{ marginBottom: 18 }}>
+        <div className="section-title">
+          <div>
+            <h2>Architecture &amp; technology stack</h2>
+            <p>Clean separation of UI, validation API, and row-level storage.</p>
+          </div>
+        </div>
+        <div className="mini-flow">
+          <span>Next.js Frontend</span>
+          <span>→</span>
+          <span>Same-origin Proxy</span>
+          <span>→</span>
+          <span>FastAPI Validation &amp; Scoring</span>
+          <span>→</span>
+          <span>Supabase RLS (Opt-in)</span>
+        </div>
+        <div className="field-grid" style={{ marginTop: 14 }}>
+          {stack.map((item) => (
+            <article key={item.name} className="card" style={{ padding: 14 }}>
+              <b style={{ display: "block", fontSize: 13.5, marginBottom: 4 }}>{item.name}</b>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 12.5 }}>{item.role}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="card card-pad" id="privacy" style={{ marginBottom: 18 }}>
+        <div className="section-title">
+          <div>
+            <h2>8. Privacy &amp; data handling</h2>
+            <p>Opt-in, consent-first, and account-isolated.</p>
+          </div>
+          <LockKeyhole size={18} color="var(--primary)" />
+        </div>
+        <div className="content-copy">
+          <ul>
+            <li>Public screening and blood-test interpretation work without signing in and do not store your entries.</li>
+            <li>Signed-in users must explicitly check a consent box to save a screening or lab interpretation to their private account.</li>
+            <li>Every read, insert, and delete request is verified against Supabase Auth and enforced by PostgreSQL Row Level Security (`auth.uid() = user_id`), preventing cross-user access.</li>
+            <li>You can export your saved history as CSV or delete individual or all records at any time from History or Account Settings.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div className="note">
+        <ShieldCheck size={18} />
+        <p>
+          <b>Medical disclaimer:</b> GlucoGuide provides educational screening and reference-range guidance only. If you
+          have symptoms or results outside the normal range, please consult a qualified healthcare professional.
+        </p>
+      </div>
+    </>
+  );
+}

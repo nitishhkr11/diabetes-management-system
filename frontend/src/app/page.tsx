@@ -1,27 +1,234 @@
 import Link from "next/link";
-import { Activity, ArrowRight, BookOpen, ChartNoAxesCombined, CircleHelp, Database, LockKeyhole, Scan, ShieldCheck, Sparkles } from "lucide-react";
-import { GlucoseIllustration, MiniFlow } from "@/components/glucose-illustration";
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  ClipboardCheck,
+  FileSpreadsheet,
+  HeartPulse,
+  LockKeyhole,
+  ShieldAlert,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
+import { GlucoseIllustration } from "@/components/glucose-illustration";
 
 function HeroArt() {
-  return <svg viewBox="0 0 440 300" aria-hidden="true"><defs><linearGradient id="heroGlow" x1="0" y1="0" x2="1" y2="1"><stop stopColor="var(--primary-soft)"/><stop offset="1" stopColor="var(--surface)"/></linearGradient></defs><circle cx="230" cy="145" r="128" fill="url(#heroGlow)"/><circle cx="230" cy="145" r="100" fill="none" stroke="var(--border)" strokeDasharray="3 8"/><path d="M74 158 C125 90 163 219 218 151 S310 102 375 158" fill="none" stroke="var(--primary)" strokeWidth="3" strokeDasharray="2 8" strokeLinecap="round"/><g className="hero-spark" fill="var(--primary)"><circle cx="124" cy="116" r="12"/><text x="124" y="120" textAnchor="middle" fontSize="9" fill="var(--on-primary)" fontWeight="800">G</text><circle cx="183" cy="186" r="11"/><text x="183" y="190" textAnchor="middle" fontSize="8" fill="var(--on-primary)" fontWeight="800">G</text><circle cx="328" cy="125" r="11"/><text x="328" y="129" textAnchor="middle" fontSize="8" fill="var(--on-primary)" fontWeight="800">G</text></g><g transform="translate(123 67)"><rect width="89" height="55" rx="13" fill="var(--surface)" stroke="var(--border)"/><path d="M22 27h42m-7-8 8 8-8 8" fill="none" stroke="var(--secondary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/><text x="44" y="73" textAnchor="middle" fill="var(--muted)" fontSize="10" fontWeight="700">INSULIN</text></g><g transform="translate(248 100)"><path d="M21 16c-20-9-33 10-21 23 10 10 29 10 40-2 9-10-2-17-19-21Z" fill="var(--secondary)"/><circle cx="20" cy="25" r="4" fill="var(--primary-soft)"/><text x="20" y="62" textAnchor="middle" fill="var(--muted)" fontSize="10" fontWeight="700">PANCREAS</text></g><g transform="translate(302 173)"><rect width="79" height="59" rx="17" fill="var(--surface)" stroke="var(--primary)" strokeWidth="2"/><path d="M0 18h15m-15 11h15m-15 11h15" stroke="var(--secondary)" strokeWidth="3" strokeLinecap="round"/><circle cx="43" cy="29" r="11" fill="var(--primary-soft)"/><text x="39" y="76" textAnchor="middle" fill="var(--muted)" fontSize="10" fontWeight="700">CELL</text></g><g transform="translate(45 205)"><rect width="131" height="48" rx="11" fill="var(--surface)" stroke="var(--border)"/><path d="M14 29h10l8-14 9 23 8-15h10" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinejoin="round"/><text x="72" y="29" fill="var(--muted)" fontSize="10" fontWeight="700">LEARN · VERIFY · EXPLAIN</text></g></svg>;
-}
+  return (
+    <svg viewBox="0 0 420 290" aria-hidden="true">
+      <defs>
+        <linearGradient id="heroGlow" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="var(--primary-soft)" />
+          <stop offset="1" stopColor="var(--surface)" />
+        </linearGradient>
+      </defs>
+      <circle cx="220" cy="145" r="122" fill="url(#heroGlow)" />
+      <circle cx="220" cy="145" r="95" fill="none" stroke="var(--border)" strokeDasharray="4 7" />
+      <rect x="64" y="66" width="150" height="74" rx="14" fill="var(--surface)" stroke="var(--border)" />
+      <text x="82" y="94" fill="var(--primary)" fontSize="10" fontWeight="800">PATHWAY A · NO LABS</text>
+      <text x="82" y="114" fill="var(--text)" fontSize="13" fontWeight="700">MDRF-IDRS</text>
+      <text x="82" y="129" fill="var(--muted)" fontSize="10">0–100 Risk Score</text>
 
-const features = [
-  { icon: Scan, title: "Public screening", body: "No login needed. Enter physical measurements to get a non-laboratory screening estimate from NHANES survey data.", href: "/screening" },
-  { icon: BookOpen, title: "Understand diabetes", body: "Clear, sourced explanations of diabetes types, diagnosis and common questions.", href: "/learn" },
-  { icon: Activity, title: "Explore the estimator", body: "See how three classic models respond to a research dataset input.", href: "/estimate" },
-  { icon: Sparkles, title: "Explainable AI", body: "Inspect feature contributions and their limits with local SHAP.", href: "/model-lab" },
-  { icon: ChartNoAxesCombined, title: "Model transparency", body: "Review the actual split, cross-validation, held-out metrics and calibration evidence.", href: "/reliability" },
-  { icon: LockKeyhole, title: "Privacy by choice", body: "Nothing is saved by default. Signed-in users can opt in to private history.", href: "/about#privacy" },
-];
+      <rect x="196" y="152" width="164" height="78" rx="14" fill="var(--surface)" stroke="var(--primary)" strokeWidth="1.8" />
+      <text x="214" y="180" fill="var(--secondary)" fontSize="10" fontWeight="800">PATHWAY B · LAB REPORT</text>
+      <text x="214" y="200" fill="var(--text)" fontSize="13" fontWeight="700">HbA1c &amp; Glucose</text>
+      <text x="214" y="216" fill="var(--muted)" fontSize="10">ADA / ICMR-WHO Ranges</text>
+
+      <path d="M160 140 C160 165 182 184 196 184" fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeDasharray="4 4" />
+      <circle cx="312" cy="84" r="22" fill="var(--primary-soft)" stroke="var(--primary)" strokeWidth="1.5" />
+      <path d="M303 84 h6 l4 -9 l5 17 l4 -8 h6" fill="none" stroke="var(--primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function HomePage() {
-  return <>
-    <section className="hero-card"><div className="hero-copy"><div className="eyebrow">DIABETES EDUCATION + RESEARCH TRANSPARENCY</div><h1>Understand the science. <em>See the model.</em></h1><p>Explore diabetes education and a transparent machine-learning research prototype, built to show how data, model outputs and explanations should be interpreted carefully.</p><div className="hero-actions"><Link className="btn" href="/screening">Check Your Diabetes Risk <ArrowRight size={16}/></Link><Link className="btn btn-secondary" href="/learn">Learn about diabetes</Link></div><div className="hero-safe"><ShieldCheck size={15}/> Educational research only · Not a diagnostic tool</div></div><div className="hero-art"><HeroArt/></div></section>
-    <div className="section-title"><div><h2>Built for learning, not diagnosis</h2><p>Patient-friendly context with technical evidence close at hand.</p></div><Link className="text-link" href="/about">Project overview <ArrowRight size={14}/></Link></div>
-    <section className="feature-grid">{features.map(({icon:Icon,title,body,href})=><Link className="card feature-card" key={title} href={href}><span className="feature-icon"><Icon size={17}/></span><h3>{title}</h3><p>{body}</p></Link>)}</section>
-    <div className="split-grid" style={{marginBottom:20}}><section className="card card-pad"><div className="section-title"><div><h2>How this research workflow works</h2><p>The same verified pipeline is used from training to inference.</p></div></div><MiniFlow/><div className="steps"><div className="step"><small>01 · INPUT</small><b>Eight variables</b><p>Small historical Pima benchmark features.</p></div><div className="step"><small>02 · PREPROCESS</small><b>Known zeros handled</b><p>Zero-to-missing, then training-only imputation and scaling.</p></div><div className="step"><small>03 · COMPARE</small><b>Five classifier families</b><p>Nested CV on training rows selects one pipeline.</p></div><div className="step"><small>04 · OUTPUT</small><b>Model score</b><p>Not a personal medical probability or diagnosis.</p></div><div className="step"><small>05 · EXPLAIN</small><b>SHAP contributions</b><p>Model behavior, not medical cause.</p></div></div></section><section className="card card-pad"><div className="section-title"><div><h2>Know the scope before you explore</h2><p>A deliberately narrow research dataset.</p></div><Database size={18} color="var(--secondary)"/></div><div className="note"><CircleHelp size={17}/><p>The benchmark contains <b>768 records from adult women of Pima heritage aged 21 and older</b>. It is not representative of all people and has not been externally validated. The binary outcome does not identify diabetes type.</p></div><ul className="scope-list"><li>Real measured model results, with project targets shown honestly.</li><li>No medical diagnosis, treatment, or individual clinical assessment.</li><li>Education pages are public; assessment history requires sign-in and opt-in consent.</li></ul><Link className="text-link" href="/reliability">See limitations and metrics <ArrowRight size={14}/></Link></section></div>
-    <div className="section-title"><div><h2>A visual way to learn</h2><p>Explore a simple concept model of glucose and insulin.</p></div><Link className="text-link" href="/simulation">Open simulation <ArrowRight size={14}/></Link></div><GlucoseIllustration compact/>
-  </>;
-}
+  return (
+    <>
+      <section className="hero-card">
+        <div className="hero-copy">
+          <div className="eyebrow">INDIAN DIABETES SCREENING &amp; LAB GUIDANCE</div>
+          <h1>
+            Understand Your Diabetes Risk. <em>Take a Step Towards Better Health.</em>
+          </h1>
+          <p>
+            GlucoGuide helps adults in India understand their diabetes risk through an established Indian screening
+            score or interpret existing blood-test results with clear, educational guidance.
+          </p>
+          <div className="hero-actions">
+            <Link className="btn" href="/screening?mode=idrs">
+              Check Your Risk <ArrowRight size={16} />
+            </Link>
+            <Link className="btn btn-secondary" href="/screening?mode=lab">
+              Understand My Test Results
+            </Link>
+          </div>
+          <div className="hero-safe">
+            <ShieldCheck size={16} />
+            <span>Educational screening &amp; guidance only · Not a clinical diagnosis</span>
+          </div>
+        </div>
+        <div className="hero-art">
+          <HeroArt />
+        </div>
+      </section>
 
+      <div className="section-title">
+        <div>
+          <h2>Choose how you want to start</h2>
+          <p>Two separate, clear pathways based on whether you have a blood-test report.</p>
+        </div>
+        <Link className="text-link" href="/screening">
+          Open screening tool <ArrowRight size={14} />
+        </Link>
+      </div>
+
+      <section className="split-grid" style={{ marginBottom: 28 }}>
+        <Link href="/screening?mode=idrs" className="pathway-card">
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span className="feature-icon" style={{ marginBottom: 0 }}>
+                <ClipboardCheck size={20} />
+              </span>
+              <span className="status-badge badge-neutral">Option 1 · No blood test needed</span>
+            </div>
+            <h3 style={{ margin: "0 0 8px", fontSize: 19 }}>I don&apos;t have a blood test</h3>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>
+              I want to assess my diabetes risk using basic health and lifestyle information (age, waist circumference,
+              physical activity, and family history) with the published <strong>MDRF-IDRS</strong> score.
+            </p>
+          </div>
+          <span className="text-link">
+            Start MDRF-IDRS screening <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link href="/screening?mode=lab" className="pathway-card">
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span className="feature-icon" style={{ marginBottom: 0 }}>
+                <FileSpreadsheet size={20} />
+              </span>
+              <span className="status-badge badge-neutral">Option 2 · Have lab values</span>
+            </div>
+            <h3 style={{ margin: "0 0 8px", fontSize: 19 }}>I already have a blood-test report</h3>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>
+              I want to understand what my <strong>HbA1c</strong>, <strong>Fasting Glucose</strong>,{" "}
+              <strong>2-hour OGTT</strong>, or <strong>Random Glucose</strong> results mean against ADA and ICMR/WHO
+              reference ranges.
+            </p>
+          </div>
+          <span className="text-link">
+            Interpret blood-test results <ArrowRight size={14} />
+          </span>
+        </Link>
+      </section>
+
+      <div className="section-title">
+        <div>
+          <h2>How GlucoGuide works</h2>
+          <p>Simple, transparent steps with clear medical safeguards.</p>
+        </div>
+        <Link className="text-link" href="/about">
+          Methodology &amp; privacy <ArrowRight size={14} />
+        </Link>
+      </div>
+
+      <section className="feature-grid">
+        <article className="card feature-card">
+          <span className="feature-icon"><HeartPulse size={18} /></span>
+          <h3>1. Pick your pathway</h3>
+          <p>Start with everyday lifestyle and waist measurements, or enter numbers directly from your pathology report.</p>
+        </article>
+        <article className="card feature-card">
+          <span className="feature-icon"><Stethoscope size={18} /></span>
+          <h3>2. Review clear guidance</h3>
+          <p>See your score or reference band with plain-language explanations, contributing factors, and safety notes.</p>
+        </article>
+        <article className="card feature-card">
+          <span className="feature-icon"><LockKeyhole size={18} /></span>
+          <h3>3. Save only if you consent</h3>
+          <p>Nothing is saved without sign-in and explicit consent. Signed-in users can track trends on their private dashboard.</p>
+        </article>
+      </section>
+
+      <section className="split-grid" style={{ marginBottom: 28 }}>
+        <article className="card content-card">
+          <div className="eyebrow" style={{ marginBottom: 6 }}>INDIAN SCREENING STANDARD</div>
+          <h2>About MDRF-IDRS</h2>
+          <p>
+            The <strong>Madras Diabetes Research Foundation Indian Diabetes Risk Score (MDRF-IDRS)</strong> is a
+            validated, non-invasive screening tool evaluated across Indian adults aged 20+ in the ICMR-INDIAB
+            population-based study.
+          </p>
+          <ul>
+            <li>Uses four simple inputs: age, sex-specific waist circumference, physical activity, and parental diabetes history.</li>
+            <li>Scores range from <strong>0 to 100</strong>: Below 30 (Low risk), 30–50 (Moderate risk), and 60 or above (High risk).</li>
+            <li>It is a screening score — <strong>not a medical diagnosis</strong> and not a personalised disease probability.</li>
+          </ul>
+          <p style={{ marginTop: 10, fontSize: 12.5 }}>
+            Note: GlucoGuide implements the published MDRF-IDRS scoring table and does not possess or train on raw
+            ICMR-INDIAB participant data.
+          </p>
+        </article>
+
+        <article className="card content-card">
+          <div className="eyebrow" style={{ marginBottom: 6 }}>CLINICAL REFERENCE RANGES</div>
+          <h2>About Blood-Test Interpretation</h2>
+          <p>
+            If you already have laboratory values, GlucoGuide compares them against established <strong>ADA</strong> and{" "}
+            <strong>ICMR/WHO</strong> thresholds and explains where guidelines differ (for example, ADA vs. WHO/ICMR
+            impaired fasting glucose cutoffs).
+          </p>
+          <ul>
+            <li>Supports HbA1c (%), Fasting Plasma Glucose, 2-hour OGTT, and Random Plasma Glucose (`mg/dL` or `mmol/L`).</li>
+            <li>Routes pregnant users to a separate gestational diabetes clinical pathway.</li>
+            <li>Requires symptom context for random glucose and advises clinical confirmation for unconfirmed diabetes-range values.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section className="split-grid" style={{ marginBottom: 28 }}>
+        <article className="card content-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <LockKeyhole size={18} color="var(--primary)" />
+            <h2 style={{ margin: 0 }}>Privacy &amp; Data Protection</h2>
+          </div>
+          <p>
+            Public screening and lab interpretation work without an account and do not store your inputs. If you sign in
+            with Supabase Authentication and explicitly check the consent box, your records are protected by PostgreSQL
+            Row Level Security (RLS) so only your account can view, export, or delete them.
+          </p>
+          <Link className="text-link" href="/about#privacy">
+            Read privacy details <ArrowRight size={14} />
+          </Link>
+        </article>
+
+        <article className="card content-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <ShieldAlert size={18} color="var(--warning)" />
+            <h2 style={{ margin: 0 }}>Medical Limitations &amp; Disclaimers</h2>
+          </div>
+          <p>
+            GlucoGuide is an educational risk-screening and lab-literacy tool. It cannot diagnose diabetes, prescribe
+            treatment, replace a clinician, or interpret a single home glucometer reading as a clinical diagnosis. Always
+            consult a qualified doctor for medical evaluation.
+          </p>
+          <Link className="text-link" href="/learn">
+            <BookOpen size={14} /> Learn about diabetes &amp; testing
+          </Link>
+        </article>
+      </section>
+
+      <div className="section-title">
+        <div>
+          <h2>Learn how glucose and insulin work</h2>
+          <p>An interactive visual overview for everyday understanding.</p>
+        </div>
+        <Link className="text-link" href="/simulation">
+          Open full view <Activity size={14} />
+        </Link>
+      </div>
+      <GlucoseIllustration compact />
+    </>
+  );
+}

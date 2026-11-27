@@ -1,17 +1,191 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowDownToLine, Trash2 } from "lucide-react";
-import { api } from "@/lib/api";
+import Link from "next/link";
+import { ArrowDownToLine, ArrowRight, Trash2 } from "lucide-react";
+import { api, IndiaRiskRecord } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
+import { createClient } from "@/lib/supabase/browser";
 
-type RecordRow = { id:string; created_at:string; model_version:string; model_name:string; score:number; label:number; threshold:number; inputs:Record<string,unknown>; explanation:{units:string;contributions:{feature:string;contribution:number}[]} };
-type Result = { items:RecordRow[];total:number;limit:number;offset:number };
 export function HistoryManager() {
- const [rows,setRows]=useState<RecordRow[]>([]);const [total,setTotal]=useState(0);const [selected,setSelected]=useState("");const [error,setError]=useState("");const [loading,setLoading]=useState(true);const [busy,setBusy]=useState("");
- async function refresh(){setLoading(true);try{const result=await api<Result>("/api/v1/history?limit=100");setRows(result.items);setTotal(result.total);setError("");}catch(e){setError(e instanceof Error?e.message:"History is unavailable.");}finally{setLoading(false);}}
- useEffect(()=>{void refresh();},[]);
- async function remove(id:string){if(!window.confirm("Delete this saved assessment? This cannot be undone."))return;setBusy(id);try{await api(`/api/v1/history/${id}`,{method:"DELETE"});await refresh();}catch(e){setError(e instanceof Error?e.message:"Could not delete that record.");}finally{setBusy("");}}
- return <><PageHeader eyebrow="PRIVATE ACCOUNT HISTORY" title="My assessments" description="Only records associated with your signed-in account are listed. You chose to save each one." action={<button className="btn btn-secondary" onClick={()=>window.location.assign("/api/dms/api/v1/history/export")}><ArrowDownToLine size={14}/> Export my records</button>}/>
-   {error&&<div className="status-error" role="alert">{error}</div>}{loading?<div className="empty-state"><p>Loading your records…</p></div>:rows.length===0?<div className="card empty-state"><div><span className="empty-mark"><ArrowDownToLine/></span><h2>No saved assessments</h2><p>After an assessment, choose the separate opt-in save control to add a private history entry. Nothing is automatically retained.</p></div></div>:<><div className="data-table-wrap"><table className="data-table"><thead><tr><th>Date</th><th>Model</th><th>Version</th><th>Dataset class</th><th>Model score</th><th>Threshold</th><th>Explanation features</th><th>Details / delete</th></tr></thead><tbody>{rows.map((r)=><tr key={r.id}><td>{new Date(r.created_at).toLocaleString()}</td><td>{r.model_name}</td><td>{r.model_version.slice(0,12)}</td><td>{r.label}</td><td>{(r.score*100).toFixed(1)}%</td><td>{r.threshold.toFixed(2)}</td><td>{r.explanation?.contributions?.slice(0,3).map((x)=>x.feature).join(", ")||"Stored"}</td><td><button className="icon-button" onClick={()=>setSelected(selected===r.id?"":r.id)} aria-expanded={selected===r.id} aria-label="View assessment details">View</button> <button className="icon-button" onClick={()=>remove(r.id)} disabled={busy===r.id} aria-label="Delete assessment"><Trash2 size={14}/></button></td></tr>)}</tbody></table></div>{selected&&(()=>{const row=rows.find((r)=>r.id===selected);return row?<section className="card card-pad" style={{marginTop:13}}><h2 className="chart-title">Assessment details · {new Date(row.created_at).toLocaleString()}</h2><p style={{color:"var(--muted)",fontSize:11}}>Stored model output only; not a medical result.</p><div className="factor-list">{Object.entries(row.inputs||{}).filter(([key])=>key!=="input_sources").map(([key,value])=><div className="factor-item" key={key}><b>{key}</b><span>{value===null?"Not measured":String(value)}</span><span/></div>)}</div>{typeof row.inputs.input_sources==="object"&&row.inputs.input_sources!==null&&<p style={{color:"var(--muted)",fontSize:10}}>Input sources: {Object.entries(row.inputs.input_sources as Record<string,string>).map(([key,source])=>`${key}: ${source}`).join(" · ")}</p>}<h3 style={{fontSize:12,marginTop:14}}>Stored explanation factors · {row.explanation?.units}</h3><div className="factor-list">{row.explanation?.contributions?.slice(0,5).map((item)=><div className="factor-item" key={item.feature}><b>{item.feature}</b><span></span><strong className={item.contribution>=0?"factor-positive":"factor-negative"}>{item.contribution>=0?"+":""}{item.contribution.toFixed(4)}</strong></div>)}</div></section>:null;})()}{rows.length<total&&<button className="btn btn-secondary" style={{marginTop:13}} onClick={async()=>{setBusy("page");try{const next=await api<Result>(`/api/v1/history?limit=100&offset=${rows.length}`);setRows([...rows,...next.items]);}catch(e){setError(e instanceof Error?e.message:"Could not load more records.");}finally{setBusy("");}}} disabled={busy==="page"}>{busy==="page"?"Loading…":"Load more"}</button>}<p style={{color:"var(--muted)",fontSize:10}}>This application does not claim regulatory compliance. Use synthetic/demo inputs; do not submit real patient data.</p></>}
- </>;
+  const [rows, setRows] = useState<IndiaRiskRecord[]>([]);
+  const [total, setTotal] = useState(0);
+  const [selected, setSelected] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState("");
+
+  async function getToken() {
+    const sb = createClient();
+    const { data: { session } } = await sb.auth.getSession();
+    return session?.access_token || "";
+  }
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Sign in to view your saved history.");
+      const result = await api<{ items: IndiaRiskRecord[]; total: number }>(
+        "/api/v1/india-risk/history?limit=100",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRows(result.items || []);
+      setTotal(result.total || 0);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "History is unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  async function remove(id: string) {
+    if (!window.confirm("Delete this saved assessment? This cannot be undone.")) return;
+    setBusy(id);
+    try {
+      const token = await getToken();
+      await api(`/api/v1/india-risk/history/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete that record.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function handleExport() {
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch("/api/dms/api/v1/india-risk/history/export", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "glucoguide-india-history.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const activeRow = rows.find((r) => r.id === selected);
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="PRIVATE ACCOUNT HISTORY"
+        title="My Saved Assessments"
+        description="Only records associated with your signed-in account are listed. Nothing is stored without your explicit consent."
+        action={
+          rows.length > 0 ? (
+            <button className="btn btn-secondary" onClick={handleExport}>
+              <ArrowDownToLine size={14} /> Export CSV
+            </button>
+          ) : undefined
+        }
+      />
+
+      {error && <div className="status-error" role="alert">{error}</div>}
+
+      {loading ? (
+        <div className="card empty-state"><p>Loading your records…</p></div>
+      ) : rows.length === 0 ? (
+        <div className="card empty-state">
+          <div>
+            <span className="empty-mark"><ArrowDownToLine size={22} /></span>
+            <h2>No saved assessments yet</h2>
+            <p>
+              After completing an MDRF-IDRS screening or blood-test interpretation, check the consent box to save it to
+              your history.
+            </p>
+            <Link className="btn" href="/screening">
+              Check Your Risk <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="data-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Pathway</th>
+                  <th>Guideline</th>
+                  <th>Score / Summary</th>
+                  <th>Result Category</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id}>
+                    <td>{new Date(r.created_at).toLocaleString()}</td>
+                    <td>{r.assessment_type === "mdrf_idrs" ? "MDRF-IDRS (No Blood Test)" : "Lab Interpretation"}</td>
+                    <td>{r.guideline_version}</td>
+                    <td>{r.score != null ? `${r.score} / 100` : "Lab values"}</td>
+                    <td><strong>{r.result_category}</strong></td>
+                    <td>
+                      <button
+                        className="icon-button"
+                        onClick={() => setSelected(selected === r.id ? "" : r.id)}
+                        aria-expanded={selected === r.id}
+                      >
+                        {selected === r.id ? "Hide" : "View"}
+                      </button>{" "}
+                      <button
+                        className="icon-button"
+                        onClick={() => remove(r.id)}
+                        disabled={busy === r.id}
+                        aria-label="Delete assessment"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {activeRow && (
+            <section className="card card-pad" style={{ marginTop: 14 }}>
+              <h2 className="chart-title">
+                Assessment Details · {new Date(activeRow.created_at).toLocaleString()}
+              </h2>
+              <p style={{ color: "var(--muted)", fontSize: 12.5, marginTop: 0 }}>
+                {activeRow.assessment_type === "mdrf_idrs"
+                  ? "MDRF-IDRS risk-screening record (not a clinical diagnosis)."
+                  : "Laboratory reference-range interpretation record."}
+              </p>
+              <div className="field-grid">
+                {Object.entries(activeRow.inputs || {}).map(([key, value]) => (
+                  <div key={key} className="card" style={{ padding: "10px 12px" }}>
+                    <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{key}</span>
+                    <strong style={{ display: "block", fontSize: 14 }}>
+                      {value === null || value === undefined ? "Not entered" : String(value)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {total > rows.length && (
+            <p style={{ color: "var(--muted)", fontSize: 12, marginTop: 10 }}>
+              Showing {rows.length} of {total} records.
+            </p>
+          )}
+        </>
+      )}
+    </>
+  );
 }
