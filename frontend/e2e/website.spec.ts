@@ -118,7 +118,11 @@ test("calibration, confusion matrix, ROC, and SHAP tooltips show saved values", 
   const darkCalibrationTooltip = page.getByRole("status").filter({ hasText: "Mean predicted score" });
   await page.getByTestId("calibration-chart").locator("svg circle").last().hover();
   await expect(darkCalibrationTooltip).toContainText(calibrationBin.mean_predicted.toFixed(6));
-  await page.mouse.move(rocBox.x + rocBox.width * 0.55, rocBox.y + rocBox.height * 0.5);
+  const darkRocSvg = page.getByTestId("roc-chart").getByRole("application");
+  await darkRocSvg.scrollIntoViewIfNeeded();
+  const darkRocBox = await darkRocSvg.boundingBox();
+  if (!darkRocBox) throw new Error("Dark-theme ROC chart has no visible drawing area.");
+  await page.mouse.move(darkRocBox.x + darkRocBox.width * 0.55, darkRocBox.y + darkRocBox.height * 0.5);
   await expect(rocTooltip).toBeVisible();
   const darkRocText = await rocTooltip.textContent() ?? "";
   const darkRocPoint = source.roc_points.find((point: { false_positive_rate: number; true_positive_rate: number; threshold: number | null }) =>
