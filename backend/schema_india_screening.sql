@@ -39,3 +39,39 @@ create policy "owners create their india assessments" on public.india_assessment
 drop policy if exists "owners delete their india assessments" on public.india_assessments;
 create policy "owners delete their india assessments" on public.india_assessments
   for delete to authenticated using ((select auth.uid()) = user_id);
+
+-- ============================================================
+-- MDRF-IDRS & Lab Result Interpretation history
+-- ============================================================
+create table if not exists public.india_risk_assessments (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  created_at        timestamptz not null default now(),
+  assessment_type   text not null check (assessment_type in ('mdrf_idrs', 'lab_interpretation')),
+  guideline_version text not null,
+  result_category   text not null,
+  score             double precision,
+  inputs            jsonb not null,
+  result_payload    jsonb not null,
+  consent           boolean not null check (consent = true)
+);
+
+create index if not exists india_risk_assessments_owner_created_idx
+  on public.india_risk_assessments (user_id, created_at desc);
+
+alter table public.india_risk_assessments enable row level security;
+alter table public.india_risk_assessments force row level security;
+revoke all on public.india_risk_assessments from anon;
+grant select, insert, delete on public.india_risk_assessments to authenticated;
+
+drop policy if exists "owners read their india risk assessments" on public.india_risk_assessments;
+create policy "owners read their india risk assessments" on public.india_risk_assessments
+  for select to authenticated using ((select auth.uid()) = user_id);
+
+drop policy if exists "owners create their india risk assessments" on public.india_risk_assessments;
+create policy "owners create their india risk assessments" on public.india_risk_assessments
+  for insert to authenticated with check ((select auth.uid()) = user_id);
+
+drop policy if exists "owners delete their india risk assessments" on public.india_risk_assessments;
+create policy "owners delete their india risk assessments" on public.india_risk_assessments
+  for delete to authenticated using ((select auth.uid()) = user_id);

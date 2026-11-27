@@ -41,6 +41,8 @@ from src.india_predict import (  # noqa: E402
 from src.brfss_predict import (  # noqa: E402
     get_brfss_metadata, get_brfss_evaluation,
 )
+from src.mdrf_idrs import compute_mdrf_idrs  # noqa: E402
+from src.lab_interpretation import interpret_lab_results  # noqa: E402
 
 REPORT_REQUEST_LIMIT = REPORT_MAX_BYTES + 256 * 1024
 
@@ -801,4 +803,123 @@ def brfss_benchmark_metadata():
 def brfss_benchmark_evaluation():
     """Return full evaluation metrics, curves, and confusion matrices for CDC BRFSS."""
     return get_brfss_evaluation()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INDIA REAL-WORLD SCREENING — MDRF-IDRS & LAB RESULT INTERPRETATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class IdrsInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    age_years: float = Field(ge=20, le=120)
+    sex: Literal["female", "male"]
+    waist_value: float = Field(gt=0)
+    waist_unit: Literal["cm", "in"] = "cm"
+    physical_activity: Literal["vigorous", "moderate", "mild", "sedentary"]
+    family_history: Literal["none", "one_parent", "both_parents"]
+
+
+class LabInterpretInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    is_pregnant: bool = False
+    hba1c_pct: float | None = Field(default=None, ge=3.0, le=20.0)
+    fasting_glucose: float | None = Field(default=None, gt=0)
+    fasting_unit: Literal["mg/dL", "mmol/L"] = "mg/dL"
+    ogtt_2h_glucose: float | None = Field(default=None, gt=0)
+    ogtt_unit: Literal["mg/dL", "mmol/L"] = "mg/dL"
+    random_glucose: float | None = Field(default=None, gt=0)
+    random_unit: Literal["mg/dL", "mmol/L"] = "mg/dL"
+    has_classic_symptoms: bool = False
+
+
+class SaveIndiaRiskAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    consent: bool
+    assessment_type: Literal["mdrf_idrs", "lab_interpretation"]
+    idrs_inputs: IdrsInput | None = None
+    lab_inputs: LabInterpretInput | None = None
+
+
+@app.post("/api/v1/india-risk/idrs", tags=["india-risk"])
+def run_mdrf_idrs(payload: IdrsInput):
+    """Compute MDRF Indian Diabetes Risk Score (adults 20+, no blood test required)."""
+    try:
+        return compute_mdrf_idrs(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/india-risk/lab-interpret", tags=["india-risk"])
+def run_lab_interpret(payload: LabInterpretInput):
+    """Interpret blood test results using ADA / ICMR-WHO criteria."""
+    try:
+        return interpret_lab_results(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/india-risk/history", tags=["india-risk-history"])
+async def india_risk_history_create(
+    payload: SaveIndiaRiskAssessment,
+    user: User,
+    authorization: Annotated[str, Header()],
+):
+    if payload.consent is not True:
+        raise HTTPException(status_code=400, detail="Explicit consent is required before saving an assessment.")
+    if payload.assessment_type == "mdrf_idrs":
+        if not payload.idrs_inputs:
+            raise HTTPException(status_code=422, detail="idrs_inputs required for mdrf_idrs.")
+        try:
+            res = compute_mdrf_idrs(**payload.idrs_inputs.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        record = {
+            "assessment_type": "mdrf_idrs",
+            "guideline_version": res["guideline_version"],
+            "result_category": res["risk_label"],
+            "score": float(res["score"]),
+            "inputs": res["normalized_inputs"],
+            "result_payload": res,
+            "consent": True,
+        }
+    else:
+        if not payload.lab_inputs:
+            raise HTTPException(status_code=422, detail="lab_inputs required for lab_interpretation.")
+        try:
+            res = interpret_lab_results(**payload.lab_inputs.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        record = {
+            "assessment_type": "lab_interpretation",
+            "guideline_version": res["guideline_version"],
+            "result_category": res["overall_label"],
+            "score": None,
+            "inputs": payload.lab_inputs.model_dump(),
+            "result_payload": res,
+            "consent": True,
+        }
+    saved = await postgrest("POST", "india_risk_assessments", authorization, json_body=record)
+    return {"item": (saved or [None])[0]}
+
+
+@app.get("/api/v1/india-risk/history", tags=["india-risk-history"])
+async def india_risk_history_list(
+    user: User,
+    authorization: Annotated[str, Header()],
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    path = (
+        "india_risk_assessments?select=id,created_at,assessment_type,guideline_version,"
+        "result_category,score,inputs,result_payload,consent"
+        f"&order=created_at.desc&limit={limit}&offset={offset}"
+    )
+    records, total = await postgrest("GET", path, authorization, exact_count=True)
+    return {"items": records or [], "total": total, "limit": limit, "offset": offset}
+
+
+@app.delete("/api/v1/india-risk/history/{assessment_id}", response_model=DeleteResponse, tags=["india-risk-history"])
+async def india_risk_history_delete(assessment_id: UUID, user: User, authorization: Annotated[str, Header()]):
+    rows = await postgrest("DELETE", f"india_risk_assessments?id=eq.{assessment_id}", authorization, prefer="return=representation")
+    return {"deleted": bool(rows)}
 

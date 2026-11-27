@@ -225,9 +225,13 @@ def test_frontend_labels_and_disclaimers_present():
     research_src = (ROOT / "frontend" / "src" / "app" / "research" / "page.tsx").read_text(encoding="utf-8")
     datasets_src = (ROOT / "frontend" / "src" / "app" / "datasets" / "page.tsx").read_text(encoding="utf-8")
 
-    assert "India-specific model is under development" in screening_src
-    assert "US population research benchmark" in screening_src
-    assert "External validation has not yet been completed." in screening_src
+    # Phase 5 rewrote /screening as "Check Your Diabetes Risk" with two
+    # pathways (MDRF-IDRS + Lab Interpretation).  Verify the new content:
+    assert "Check Your Diabetes Risk" in screening_src
+    assert "MDRF-IDRS" in screening_src
+    assert "not a diabetes diagnosis" in screening_src
+    # Research-model separation note preserved on the screening page:
+    assert "never combined with MDRF-IDRS" in screening_src
 
     assert "Historical Pima research benchmark" in research_src
     assert "US population research benchmark" in research_src

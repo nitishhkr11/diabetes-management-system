@@ -20,6 +20,15 @@ interface ScreeningRecord {
   dataset: string;
 }
 
+interface IndiaRiskRecord {
+  id: string;
+  created_at: string;
+  assessment_type: "mdrf_idrs" | "lab_interpretation";
+  guideline_version: string;
+  result_category: string;
+  score: number | null;
+}
+
 const MEASUREMENT_SERIES = [
   { key: "bmi",        label: "BMI",                    unit: "kg/m²",   color: "#c75d25" },
   { key: "waist_cm",   label: "Waist circumference",    unit: "cm",       color: "#702b3a" },
@@ -43,6 +52,7 @@ function Delta({ first, last, unit }: { first: number | null; last: number | nul
 
 export default function ProgressPage() {
   const [records, setRecords] = useState<ScreeningRecord[]>([]);
+  const [indiaRiskRecords, setIndiaRiskRecords] = useState<IndiaRiskRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -61,6 +71,14 @@ export default function ProgressPage() {
         if (!res.ok) throw new Error("Could not load history.");
         const data = await res.json();
         setRecords(data.items || []);
+        const r2 = await fetch("/api/dms/api/v1/india-risk/history?limit=100", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: "no-store",
+        });
+        if (r2.ok) {
+          const d2 = await r2.json();
+          setIndiaRiskRecords(d2.items || []);
+        }
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "Failed to load.");
       } finally {
@@ -271,6 +289,36 @@ export default function ProgressPage() {
             </table>
           </div>
         </>
+      )}
+      {/* India Risk & Lab History */}
+      {indiaRiskRecords.length > 0 && (
+        <div className="card card-pad" style={{ marginTop: 24 }}>
+          <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>India Risk (MDRF-IDRS) &amp; Lab Interpretation History</h3>
+          <div style={{ overflow: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid var(--border)", textAlign: "left" }}>
+                  <th style={{ padding: "8px 10px" }}>Date</th>
+                  <th style={{ padding: "8px 10px" }}>Type</th>
+                  <th style={{ padding: "8px 10px" }}>Category</th>
+                  <th style={{ padding: "8px 10px" }}>Score</th>
+                  <th style={{ padding: "8px 10px" }}>Guideline</th>
+                </tr>
+              </thead>
+              <tbody>
+                {indiaRiskRecords.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "8px 10px" }}>{new Date(item.created_at).toLocaleDateString()}</td>
+                    <td style={{ padding: "8px 10px" }}>{item.assessment_type === "mdrf_idrs" ? "MDRF-IDRS" : "Lab Interpretation"}</td>
+                    <td style={{ padding: "8px 10px", fontWeight: 700 }}>{item.result_category}</td>
+                    <td style={{ padding: "8px 10px" }}>{item.score != null ? `${item.score}/100` : "—"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--muted)" }}>{item.guideline_version}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </>
   );
